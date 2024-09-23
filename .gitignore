@@ -1,0 +1,9 @@
+# Ignore system files and directories
+.vscode/
+node_modules/
+*.log
+.DS_Store
+
+# Add any other files or directories you want to ignore
+
+.env.local
