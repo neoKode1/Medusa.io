@@ -1,13 +1,14 @@
-import React, { useState } from 'react';  // Ensure React and useState are imported correctly
-import { Upload, RefreshCw } from 'lucide-react';  // Any third-party libraries you're using
-import LumaAI from 'lumaai';  // Ensure LumaAI is imported
+import { useState } from 'react';  // Remove React import
+import Image from 'next/image';  // Import Image component for uploaded image preview
+import { Upload, RefreshCw } from 'lucide-react';
+import LumaAI from 'lumaai';
+import Link from 'next/link';
 
 // Initialize the LumaAI client
 const client = new LumaAI({
-  authToken: process.env.NEXT_PUBLIC_LUMAAI_API_KEY,  // Fetch API key from environment variables
+  authToken: process.env.NEXT_PUBLIC_LUMAAI_API_KEY,
 });
 
-// Define the ImageToVideoPage component
 const ImageToVideoPage = () => {
   const [prompt, setPrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -15,14 +16,15 @@ const ImageToVideoPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const handleUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target.result);
-      };
+      reader.onload = (e) => setUploadedImage(e.target.result);
       reader.readAsDataURL(file);
     }
   };
@@ -31,92 +33,89 @@ const ImageToVideoPage = () => {
     setIsProcessing(true);
     setError(null);
     setProgress(0);
-  
-    // Log the API key to ensure it's correctly fetched
-    console.log('API Key:', process.env.NEXT_PUBLIC_LUMAAI_API_KEY);
-  
+
     try {
-      // Step 1: Call the LumaAI API to generate the video
       const generation = await client.generations.create({
         aspect_ratio: '16:9',
         prompt: prompt,
+        image: uploadedImage,  // Add the uploaded image to the API call
       });
-  
+
       if (generation && generation.id) {
         const { id: taskId } = generation;
-  
-        // Step 2: Polling to check the status of the video generation
-        let interval = setInterval(async () => {
-          try {
-            const statusResponse = await client.generations.get(taskId);  
-            const { state, assets, progressPercent, failure_reason } = statusResponse;
-  
-            // Log full status response to understand the structure
-            console.log('Status Response:', statusResponse);
-  
-            setProgress(progressPercent || 0);  // Update progress
-  
-            if (state === 'completed') {
-              clearInterval(interval);
-  
-              // Check if assets are available
-              if (assets && assets.video) {
-                setGeneratedVideo(assets.video);  // Set the video URL
-                setIsProcessing(false);
-              } else {
-                setError('Video generation completed but no assets were found.');
-                setIsProcessing(false);
-              }
-  
-            } else if (state === 'failed') {
-              clearInterval(interval);
-              console.error('Video generation failed:', failure_reason);  // Log failure reason
-              setError(`Video generation failed: ${failure_reason || 'Unknown reason'}`);
-              setIsProcessing(false);
-  
-            } else if (state === 'dreaming' || state === 'queued' || state === 'processing') {
-              // Continue polling if the task is still in progress
-              console.log(`Video generation is in progress... [${state}]`);
-            }
-          } catch (statusError) {
-            console.error("Error checking status: ", statusError);
-            clearInterval(interval);
-            setError('An error occurred while checking the generation status.');
-            setIsProcessing(false);
-          }
-        }, 5000); // Poll every 5 seconds
-  
+        await pollGenerationStatus(taskId);
       } else {
-        console.error('Invalid API response:', generation);
-        setError('Failed to start video generation. Please check your input and try again.');
-        setIsProcessing(false);
+        throw new Error('Invalid API response');
       }
-  
     } catch (error) {
-      if (error instanceof LumaAI.APIError) {
-        console.error(`API Error: ${error.status} - ${error.name}`);
-        console.error('Detailed API Error:', error);  // Log full error
-        setError(`API Error: ${error.status} - ${error.message}`);
-      } else {
-        console.error('Unexpected error:', error);
-        setError('An unexpected error occurred while generating the video.');
-      }
-      setIsProcessing(false);
+      handleError(error);
     }
   };
-  
+
+  const pollGenerationStatus = async (taskId) => {
+    const interval = setInterval(async () => {
+      try {
+        const statusResponse = await client.generations.get(taskId);
+        const { state, assets, progressPercent, failure_reason } = statusResponse;
+
+        setProgress(progressPercent || 0);
+
+        if (state === 'completed') {
+          clearInterval(interval);
+          if (assets && assets.video) {
+            setGeneratedVideo(assets.video);
+            setIsProcessing(false);
+          } else {
+            throw new Error('Video generation completed but no assets were found.');
+          }
+        } else if (state === 'failed') {
+          throw new Error(failure_reason || 'Video generation failed');
+        } else {
+          console.log(`Video generation is in progress... [${state}]`);
+        }
+      } catch (error) {
+        clearInterval(interval);
+        handleError(error);
+      }
+    }, 5000);
+  };
+
+  const handleError = (error) => {
+    console.error('Error:', error);
+    setError(error.message || 'An unexpected error occurred');
+    setIsProcessing(false);
+  };
+
   return (
     <div className="min-h-screen bg-white text-black p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-7xl font-bold mb-12 text-center text-[#64748b]">
           MEDSUSA.io
         </h1>
-        
-        {/* Add video section below the title */}
+
+        {/* Dropdown Menu for Navigation */}
+        <div className="relative mb-8 flex justify-center">
+          <button
+            onClick={toggleDropdown}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Menu
+          </button>
+          {isDropdownOpen && (
+            <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-10">
+              <li><Link href="/" className="block px-4 py-2 hover:bg-gray-200">Home</Link></li>
+              <li><Link href="/ImageToVideoPage" className="block px-4 py-2 hover:bg-gray-200">Image to Video</Link></li>
+              <li><Link href="/TextToImagePage" className="block px-4 py-2 hover:bg-gray-200">Text to Image</Link></li>
+              <li><Link href="/AnotherPage" className="block px-4 py-2 hover:bg-gray-200">Another Page</Link></li>
+            </ul>
+          )}
+        </div>
+
+        {/* Video section */}
         <div className="flex justify-center mb-12">
           <video
-            src="/medusa-video.mp4"  // Replace with actual video path
-            className="w-384px h-384px object-cover rounded-lg"
+            src="/medusa-video.mp4"
+            className="w-96 h-96 object-cover rounded-lg"
             autoPlay
             loop
             muted
@@ -127,7 +126,6 @@ const ImageToVideoPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
             <label htmlFor="prompt" className="block text-lg mb-2">Enter your prompt:</label>
-            
             <textarea
               id="prompt"
               value={prompt}
@@ -151,6 +149,11 @@ const ImageToVideoPage = () => {
               </label>
               {uploadedImage && <span className="text-green-400">Image uploaded</span>}
             </div>
+            {uploadedImage && (
+              <div className="mt-4">
+                <Image src={uploadedImage} alt="Uploaded" width={200} height={200} objectFit="cover" />
+              </div>
+            )}
             <button
               onClick={handleGenerate}
               disabled={!prompt || !uploadedImage || isProcessing}
@@ -186,5 +189,4 @@ const ImageToVideoPage = () => {
   );
 };
 
-// Default export must be a valid React component
 export default ImageToVideoPage;
