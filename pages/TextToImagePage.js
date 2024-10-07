@@ -1,14 +1,14 @@
-import { useState } from 'react';  // Remove React import
+import { useState } from 'react';  // Import necessary hooks
 import Image from 'next/image';  // Import Image component
-import { RefreshCw, ChevronDown } from 'lucide-react';  // Remove unused Upload import
+import { RefreshCw, ChevronDown } from 'lucide-react';  // Import icons
 import Link from 'next/link';
 
 const TextToImagePage = () => {
-  const [prompt, setPrompt] = useState('');
-  const [generatedImage, setGeneratedImage] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState(null);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [prompt, setPrompt] = useState('');  // State for the prompt input
+  const [generatedImage, setGeneratedImage] = useState(null);  // State for generated image
+  const [isProcessing, setIsProcessing] = useState(false);  // State for loading status
+  const [error, setError] = useState(null);  // State for errors
+  const [showDropdown, setShowDropdown] = useState(false);  // State for dropdown menu
 
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -24,12 +24,13 @@ const TextToImagePage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ value: prompt }),
+        body: JSON.stringify({ value: prompt }),  // Send prompt to API
       });
 
       if (response.ok) {
         const data = await response.json();
-        setGeneratedImage(data[0]);
+        setGeneratedImage(data[0]);  // Set generated image
+        setPrompt('');  // Reset the prompt input after generating image
         setIsProcessing(false);
       } else {
         console.error('Error:', response.statusText);

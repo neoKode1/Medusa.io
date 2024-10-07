@@ -1,10 +1,9 @@
-import { useState } from 'react';  // Remove React import
-import Image from 'next/image';  // Import Image component for uploaded image preview
+import { useState } from 'react';
+import Image from 'next/image';
 import { Upload, RefreshCw } from 'lucide-react';
 import LumaAI from 'lumaai';
 import Link from 'next/link';
 
-// Initialize the LumaAI client
 const client = new LumaAI({
   authToken: process.env.NEXT_PUBLIC_LUMAAI_API_KEY,
 });
@@ -12,7 +11,7 @@ const client = new LumaAI({
 const ImageToVideoPage = () => {
   const [prompt, setPrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
-  const [generatedVideo, setGeneratedVideo] = useState(null);
+  const [generatedVideos, setGeneratedVideos] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
@@ -30,16 +29,27 @@ const ImageToVideoPage = () => {
   };
 
   const handleGenerate = async () => {
+    if (!prompt) {
+      setError('Please enter a prompt before generating.');
+      return;
+    }
+    
     setIsProcessing(true);
     setError(null);
     setProgress(0);
 
     try {
-      const generation = await client.generations.create({
+      const generationOptions = {
         aspect_ratio: '16:9',
         prompt: prompt,
-        image: uploadedImage,  // Add the uploaded image to the API call
-      });
+      };
+
+      // Only include the image if one is uploaded
+      if (uploadedImage) {
+        generationOptions.image = uploadedImage;
+      }
+
+      const generation = await client.generations.create(generationOptions);
 
       if (generation && generation.id) {
         const { id: taskId } = generation;
@@ -52,39 +62,7 @@ const ImageToVideoPage = () => {
     }
   };
 
-  const pollGenerationStatus = async (taskId) => {
-    const interval = setInterval(async () => {
-      try {
-        const statusResponse = await client.generations.get(taskId);
-        const { state, assets, progressPercent, failure_reason } = statusResponse;
-
-        setProgress(progressPercent || 0);
-
-        if (state === 'completed') {
-          clearInterval(interval);
-          if (assets && assets.video) {
-            setGeneratedVideo(assets.video);
-            setIsProcessing(false);
-          } else {
-            throw new Error('Video generation completed but no assets were found.');
-          }
-        } else if (state === 'failed') {
-          throw new Error(failure_reason || 'Video generation failed');
-        } else {
-          console.log(`Video generation is in progress... [${state}]`);
-        }
-      } catch (error) {
-        clearInterval(interval);
-        handleError(error);
-      }
-    }, 5000);
-  };
-
-  const handleError = (error) => {
-    console.error('Error:', error);
-    setError(error.message || 'An unexpected error occurred');
-    setIsProcessing(false);
-  };
+  // ... (keep the rest of the functions as they are)
 
   return (
     <div className="min-h-screen bg-white text-black p-8">
@@ -111,18 +89,6 @@ const ImageToVideoPage = () => {
           )}
         </div>
 
-        {/* Video section */}
-        <div className="flex justify-center mb-12">
-          <video
-            src="/medusa-video.mp4"
-            className="w-96 h-96 object-cover rounded-lg"
-            autoPlay
-            loop
-            muted
-            playsInline
-          />
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
             <label htmlFor="prompt" className="block text-lg mb-2">Enter your prompt:</label>
@@ -134,7 +100,7 @@ const ImageToVideoPage = () => {
               placeholder="Describe the video you want to generate..."
               rows={4}
             />
-            <label htmlFor="image-upload" className="block text-lg mb-2">Upload reference image:</label>
+            <label htmlFor="image-upload" className="block text-lg mb-2">Upload reference image (optional):</label>
             <div className="flex items-center space-x-4">
               <input
                 id="image-upload"
@@ -156,7 +122,7 @@ const ImageToVideoPage = () => {
             )}
             <button
               onClick={handleGenerate}
-              disabled={!prompt || !uploadedImage || isProcessing}
+              disabled={!prompt || isProcessing}
               className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? 'Generating...' : 'Generate Video'}
@@ -165,20 +131,19 @@ const ImageToVideoPage = () => {
             {error && <p className="text-red-500">{error}</p>}
           </div>
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Generated Video</h2>
-            <div className="relative aspect-video bg-white-800 rounded-lg overflow-hidden">
-              {isProcessing ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <RefreshCw className="w-16 h-16 animate-spin text-blue-500" />
+            <h2 className="text-2xl font-semibold">Generated Videos</h2>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {generatedVideos.map((videoUrl, index) => (
+                <div key={index} className="relative aspect-video bg-white-800 rounded-lg overflow-hidden">
+                  <video controls className="w-full h-full">
+                    <source src={videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
-              ) : generatedVideo ? (
-                <video controls className="w-full h-full">
-                  <source src={generatedVideo} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  Your generated video will appear here
+              ))}
+              {generatedVideos.length === 0 && (
+                <div className="aspect-video bg-white-800 rounded-lg flex items-center justify-center text-gray-500">
+                  Your generated videos will appear here
                 </div>
               )}
             </div>

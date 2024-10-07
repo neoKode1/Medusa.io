@@ -1,5 +1,4 @@
 import Head from 'next/head';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -16,17 +15,14 @@ export default function Home() {
         <title>medusa.io</title>
       </Head>
 
-      <main className="flex flex-col min-h-screen bg-gray-100 p-8">
+      {/* Set background color to black */}
+      <main className="flex flex-col min-h-screen bg-black p-8">
         <div className="flex justify-between items-start mb-12">
-          <h1 className="text-8xl font-bold text-gray-800">MEDSUSA.io</h1>
-          <Image
-            src="/medusa_art-removebg-preview-modified.png"
-            alt="Medusa art"
-            width={200}
-            height={200}
-            className="ml-4"
-            priority
-          />
+          {/* Change text color to white */}
+          <h1 className="text-8xl font-bold text-white">MEDSUSA.io</h1>
+          
+          {/* Add a paragraph under the title */}
+          <p className="text-white text-2xl mt-4">Powered by Luma Dream Machine AI</p>
         </div>
 
         {/* Dropdown Menu for Navigation */}
