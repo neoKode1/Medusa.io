@@ -1,4 +1,4 @@
-import { useState } from 'react';  // Import necessary hooks
+import { useState } from 'react';
 import Image from 'next/image';  // Import Image component
 import { RefreshCw, ChevronDown } from 'lucide-react';  // Import icons
 import Link from 'next/link';
@@ -45,34 +45,44 @@ const TextToImagePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black p-8">
-      <div className="relative">
-        <button
-          className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          onClick={toggleDropdown}
-        >
-          Menu
-          <ChevronDown className="ml-2" />
-        </button>
-        {showDropdown && (
-          <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
-            <Link href="/" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">
-              Home
-            </Link>
-            <Link href="/ImageToVideoPage" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">
-              Image to Video
-            </Link>
-            <Link href="/TextToImagePage" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">
-              Text to Image
-            </Link>
-          </div>
-        )}
-      </div>
+    <div
+      className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
+      style={{
+        backgroundImage: "url('/Medusa.svg.svg')",  // Path to your background image
+        backgroundSize: 'contain',                  // Adjust size (cover/contain/auto)
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="bg-white bg-opacity-80 p-8 rounded-lg max-w-2xl w-full">
+        <div className="relative mb-8">
+          <button
+            onClick={toggleDropdown}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+          >
+            Menu
+            <ChevronDown className="ml-2" />
+          </button>
+          {showDropdown && (
+            <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-10">
+              <li>
+                <Link href="/" className="block px-4 py-2 hover:bg-gray-200">Home</Link>
+              </li>
+              <li>
+                <Link href="/ImageToVideoPage" className="block px-4 py-2 hover:bg-gray-200">Image to Video</Link>
+              </li>
+              <li>
+                <Link href="/TextToImagePage" className="block px-4 py-2 hover:bg-gray-200">Text to Image</Link>
+              </li>
+              <li>
+                <Link href="/generate-prompt" className="block px-4 py-2 hover:bg-gray-200">
+                  Generate Prompt
+                </Link>
+              </li>
+            </ul>
+          )}
+        </div>
 
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-7xl font-bold mb-12 text-center text-[#64748b]">
-          MEDSUSA.io
-        </h1>
+        <h1 className="text-7xl font-bold mb-12 text-center text-[#64748b]">MEDSUSA.io</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
