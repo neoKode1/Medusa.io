@@ -26,7 +26,7 @@ const ImageToVideoPage = () => {
   const handleGenerate = async () => {
     setIsProcessing(true);
     setError(null);
-
+  
     try {
       const response = await fetch('/api/lumaai', {
         method: 'POST',
@@ -38,21 +38,67 @@ const ImageToVideoPage = () => {
           image: uploadedImage || null,  // Send null if no image is uploaded
         }),
       });
-
+  
       if (response.ok) {
         const data = await response.json();
-        setGeneratedVideo(data.assets.video);  // Assuming the response contains the generated video
+  
+        // Log the full response data for debugging purposes
+        console.log('LumaAI API response:', data);
+  
+        // If the state is 'queued', poll for the status until it's done
+        if (data.state === 'queued') {
+          pollForCompletion(data.id);  // Start polling if the generation is queued
+        } else if (data.assets && data.assets.video) {
+          setGeneratedVideo(data.assets.video);  // Set the video when it's generated
+        } else {
+          throw new Error('Video not generated. Please check the response from the API.');
+        }
+  
         setIsProcessing(false);
       } else {
-        throw new Error('Failed to generate video');
+        throw new Error(`Failed to generate video. Status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error:', error);
-      setError('An error occurred while generating the video.');
+      console.error('Error:', error.message || error);
+      setError('An error occurred while generating the video. Please try again.');
       setIsProcessing(false);
     }
   };
-
+  
+  // Polling function to check the status of the video generation
+  const pollForCompletion = async (id) => {
+    try {
+      const interval = setInterval(async () => {
+        const response = await fetch(`/api/lumaai/status/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Polling response:', data);
+  
+          if (data.state === 'completed' && data.assets && data.assets.video) {
+            clearInterval(interval);  // Stop polling once video is generated
+            setGeneratedVideo(data.assets.video);  // Set the generated video
+            setIsProcessing(false);
+          } else if (data.state === 'failed') {
+            clearInterval(interval);
+            throw new Error('Video generation failed. Please try again.');
+          }
+        } else {
+          throw new Error(`Failed to check generation status. Status: ${response.status}`);
+        }
+      }, 5000);  // Poll every 5 seconds
+    } catch (error) {
+      console.error('Polling Error:', error.message || error);
+      setError('An error occurred while checking video generation status.');
+      setIsProcessing(false);
+    }
+  };
+  
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
