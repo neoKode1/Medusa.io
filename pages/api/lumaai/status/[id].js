@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import { LumaAI } from 'lumaai';
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -9,24 +9,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(`https://api.dev.runwayml.com/v1/tasks/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.RUNWAY_API_KEY}`,
-        'X-Runway-Version': '2024-09-13',
-      },
+    const client = new LumaAI({
+      authToken: process.env.LUMAAI_API_KEY,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to get RunwayML task status. Status: ${response.status}. ${errorData.error || ''}`);
-    }
+    const generation = await client.generations.get(id);
 
-    const data = await response.json();
-    res.status(200).json(data);
+    res.status(200).json(generation);
   } catch (error) {
-    console.error('Error fetching task status:', error);
-    res.status(500).json({ message: 'Failed to get task status', error: error.message });
+    console.error('Error fetching generation status:', error);
+    res.status(500).json({ message: 'Failed to get generation status', error: error.message });
   }
 }

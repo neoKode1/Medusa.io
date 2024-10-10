@@ -53,7 +53,7 @@ const TextToImagePage = () => {
         backgroundPosition: 'center',
       }}
     >
-      <div className="bg-white bg-opacity-80 p-8 rounded-lg max-w-2xl w-full">
+      <div className="bg-white bg-opacity-20 p-8 rounded-lg max-w-2xl w-full">
         <div className="relative mb-8">
           <button
             onClick={toggleDropdown}
