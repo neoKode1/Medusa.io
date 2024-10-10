@@ -21,7 +21,7 @@ export default function Home() {
           {/* Title and Subtitle */}
           <div className="text-center">
             <h1 className="text-8xl font-bold text-white mb-4">MEDSUSA.io</h1>
-            <p className="text-white text-2xl">Powered by Luma Dream Machine AI</p>
+            <p className="text-white text-2xl">Powered by Luma Dream Machine AI with Runway Gen-3 Alpha</p>
           </div>
 
           {/* Dropdown Menu for Navigation */}

@@ -1,24 +1,28 @@
 import { useState } from 'react';
-import { Upload, ChevronDown } from 'lucide-react';  // Ensure Upload and ChevronDown icons are imported
-import Link from 'next/link'; // Import Link for navigation
+import { Upload } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LumaAI } from 'lumaai';
 
-const ImageToVideoPage = () => {
+export default function ImageToVideoPage() {
   const [prompt, setPrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
   const [generatedVideo, setGeneratedVideo] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [model, setModel] = useState('gen3a_turbo');
   const [error, setError] = useState(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);  // State for menu dropdown
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+  const [progress, setProgress] = useState(0);
 
   const handleUpload = (event) => {
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => setUploadedImage(e.target.result);
+      reader.onload = (e) => setUploadedImage(e.target?.result);
       reader.readAsDataURL(file);
     }
   };
@@ -26,197 +30,140 @@ const ImageToVideoPage = () => {
   const handleGenerate = async () => {
     setIsProcessing(true);
     setError(null);
-  
+    setProgress(0);
+
     try {
-      const response = await fetch('/api/lumaai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          image: uploadedImage || null,  // Send null if no image is uploaded
-        }),
+      const client = new LumaAI({ authToken: process.env.NEXT_PUBLIC_LUMAAI_API_KEY });
+
+      let generation = await client.generations.create({
+        prompt: prompt,
+        image: uploadedImage,
+        model: model,
+        duration: 10,
+        ratio: "16:9"
       });
-  
-      if (response.ok) {
-        const data = await response.json();
-  
-        // Log the full response data for debugging purposes
-        console.log('LumaAI API response:', data);
-  
-        // If the state is 'queued', poll for the status until it's done
-        if (data.state === 'queued') {
-          pollForCompletion(data.id);  // Start polling if the generation is queued
-        } else if (data.assets && data.assets.video) {
-          setGeneratedVideo(data.assets.video);  // Set the video when it's generated
+
+      let completed = false;
+
+      while (!completed) {
+        generation = await client.generations.get(generation.id);
+
+        if (generation.state === "completed") {
+          completed = true;
+          setGeneratedVideo(generation.assets.video);
+          setProgress(100);
+        } else if (generation.state === "failed") {
+          throw new Error(`Generation failed: ${generation.failure_reason}`);
         } else {
-          throw new Error('Video not generated. Please check the response from the API.');
+          setProgress(generation.progress * 100);
+          await new Promise(r => setTimeout(r, 3000)); // Wait for 3 seconds
         }
-  
-        setIsProcessing(false);
-      } else {
-        throw new Error(`Failed to generate video. Status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error:', error.message || error);
-      setError('An error occurred while generating the video. Please try again.');
+      console.error('Error:', error);
+      setError('An error occurred while generating the video.');
+    } finally {
       setIsProcessing(false);
     }
   };
-  
-  // Polling function to check the status of the video generation
-  const pollForCompletion = async (id) => {
-    try {
-      const interval = setInterval(async () => {
-        const response = await fetch(`/api/lumaai/status/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-  
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Polling response:', data);
-  
-          if (data.state === 'completed' && data.assets && data.assets.video) {
-            clearInterval(interval);  // Stop polling once video is generated
-            setGeneratedVideo(data.assets.video);  // Set the generated video
-            setIsProcessing(false);
-          } else if (data.state === 'failed') {
-            clearInterval(interval);
-            throw new Error('Video generation failed. Please try again.');
-          }
-        } else {
-          throw new Error(`Failed to check generation status. Status: ${response.status}`);
-        }
-      }, 5000);  // Poll every 5 seconds
-    } catch (error) {
-      console.error('Polling Error:', error.message || error);
-      setError('An error occurred while checking video generation status.');
-      setIsProcessing(false);
-    }
-  };
-  
+
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
+      className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 to-purple-500 relative"
       style={{
-        backgroundImage: "url('/Medusa.svg.svg')",  // Path to your background image
-        backgroundSize: 'contain',                  // Adjust size (cover/contain/auto)
-        backgroundPosition: 'center',
+        backgroundImage: "url('/Medusa.svg.svg')",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "2000px",
       }}
     >
-      <div className="bg-white bg-opacity-80 p-8 rounded-lg max-w-2xl w-full">
-        
-        {/* Dropdown Menu for Navigation */}
-        <div className="relative mb-8">
-          <button
-            onClick={toggleDropdown}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
-          >
-            Menu
-            <ChevronDown className="ml-2" />
-          </button>
-          {isDropdownOpen && (
-            <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-10">
-              <li>
-                <Link href="/" className="block px-4 py-2 hover:bg-gray-200">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/ImageToVideoPage" className="block px-4 py-2 hover:bg-gray-200">
-                  Image to Video
-                </Link>
-              </li>
-              <li>
-                <Link href="/TextToImagePage" className="block px-4 py-2 hover:bg-gray-200">
-                  Text to Image
-                </Link>
-              </li>
-              <li>
-                <Link href="/generate-prompt" className="block px-4 py-2 hover:bg-gray-200">
-                  Generate Prompt
-                </Link>
-              </li>
-            </ul>
-          )}
-        </div>
+      <div className="bg-black opacity-50 absolute inset-0" aria-hidden="true" />
 
-        <h1 className="text-3xl font-bold mb-8 text-center">Image to Video Generator</h1>
+      <Card className="w-full max-w-2xl relative z-10 backdrop-blur-sm bg-opacity-80">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-center text-white">
+            Image to Video Generator
+          </CardTitle>
+        </CardHeader>
 
-        {/* Prompt Input */}
-        <div className="mb-4">
-          <label htmlFor="prompt" className="block text-lg mb-2">Enter your prompt:</label>
-          <textarea
-            id="prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-lg"
-            placeholder="Describe the video you want to generate..."
-            rows={4}
-          />
-        </div>
-
-        {/* File Upload (Optional) */}
-        <div className="mb-4">
-          <label htmlFor="image-upload" className="block text-lg mb-2">Upload reference image (optional):</label>
-          <div className="flex items-center space-x-4">
-            <input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleUpload}
-              className="hidden"
-            />
-            <label htmlFor="image-upload" className="cursor-pointer px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors flex items-center space-x-2">
-              <Upload className="w-5 h-5" />  {/* Icon for uploading image */}
-              <span>Choose File</span>
-            </label>
-            {uploadedImage && (
-              <div className="mt-4">
-                <img
-                  src={uploadedImage}
-                  alt="Uploaded preview"
-                  className="w-24 h-24 object-cover rounded-lg"
+        <CardContent className="space-y-4 text-white">
+          <div>
+            <Label htmlFor="model" className="text-white">Choose Model:</Label>
+            <Select value={model} onValueChange={setModel}>
+              <SelectTrigger id="model" className="text-black">
+                <SelectValue
+                  placeholder="Select model"
+                  className="font-bold text-indigo-600"
                 />
-                <span className="text-green-400">Image uploaded</span>
-              </div>
-            )}
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gen3a_turbo">Gen-3 Alpha Turbo (Faster)</SelectItem>
+                <SelectItem value="gen3a_alpha">Gen-3 Alpha (Higher Fidelity)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
 
-        {/* Generate Button */}
-        <button
-          onClick={handleGenerate}
-          disabled={isProcessing || !prompt}  // Disable only if prompt is empty or processing
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-        >
-          {isProcessing ? (
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.75V6m0 6V9m3-3.25h1.25M15 21h1.25m-8-6.75H6.25M12 18.25v-1.25m0-3.75V9m0-3v-1.25" />
-            </svg>
-          ) : 'Generate Video'}
-        </button>
-
-        {/* Error Message */}
-        {error && <p className="text-red-500 mt-4">{error}</p>}
-
-        {/* Generated Video */}
-        {generatedVideo && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-2">Generated Video</h2>
-            <video controls className="w-full h-64 object-cover rounded-lg">
-              <source src={generatedVideo} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+          <div>
+            <Label htmlFor="prompt" className="text-white">Enter your prompt:</Label>
+            <Textarea
+              id="prompt"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe the video you want to generate..."
+              rows={4}
+              className="text-black"
+            />
           </div>
-        )}
-      </div>
+
+          <div>
+            <Label htmlFor="image-upload" className="text-white">Upload reference image (optional):</Label>
+            <div className="flex items-center space-x-4">
+              <Input 
+                id="image-upload" 
+                type="file" 
+                accept="image/*" 
+                onChange={handleUpload} 
+                className="hidden" 
+                aria-label="Upload reference image"
+              />
+              <Button asChild>
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  <Upload className="w-5 h-5 mr-2" aria-hidden="true" />
+                  <span>Choose File</span>
+                </label>
+              </Button>
+            </div>
+            {uploadedImage && <p className="text-green-600 mt-2">Image uploaded</p>}
+          </div>
+
+          <Button
+            onClick={handleGenerate}
+            disabled={isProcessing || !prompt}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            {isProcessing ? "Generating..." : "Generate Video"}
+          </Button>
+
+          {isProcessing && (
+            <div className="mt-4">
+              <Progress value={progress} className="w-full" />
+              <p className="text-center mt-2" aria-live="polite">{progress.toFixed(0)}% Complete</p>
+            </div>
+          )}
+
+          {error && <p className="text-red-500" role="alert">{error}</p>}
+
+          {generatedVideo && (
+            <div className="mt-4">
+              <h2 className="text-lg font-semibold mb-2">Generated Video</h2>
+              <video controls className="w-full h-64 object-cover rounded-lg">
+                <source src={generatedVideo} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default ImageToVideoPage;
+}

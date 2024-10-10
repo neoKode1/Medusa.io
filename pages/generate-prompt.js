@@ -50,7 +50,7 @@ const GeneratePromptPage = () => {
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
       style={{
         backgroundImage: "url('/Medusa.svg.svg')",  // Background image
-        backgroundSize: 'contain',
+        backgroundSize: '2000px',
         backgroundPosition: 'center',
       }}
     >

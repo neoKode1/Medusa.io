@@ -5,12 +5,10 @@ const nextConfig = {
   env: {
     LUMAAI_API_KEY: process.env.LUMAAI_API_KEY,
   },
-  // Add this to ensure .tsx files are properly resolved
   webpack: (config) => {
     config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', ...config.resolve.extensions];
     return config;
   },
-  // Update images configuration to use remotePatterns
   images: {
     remotePatterns: [
       {
@@ -24,6 +22,27 @@ const nextConfig = {
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
   },
 }
 

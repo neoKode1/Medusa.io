@@ -49,7 +49,7 @@ const TextToImagePage = () => {
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
       style={{
         backgroundImage: "url('/Medusa.svg.svg')",  // Path to your background image
-        backgroundSize: 'contain',                  // Adjust size (cover/contain/auto)
+        backgroundSize: '2000px',                  // Adjust size (cover/contain/auto)
         backgroundPosition: 'center',
       }}
     >

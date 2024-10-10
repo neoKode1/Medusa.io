@@ -34,3 +34,6 @@ out/              # Next.js static export folder (if using static HTML export)
 
 # Ignore lockfiles if not necessary
 *.lock            # Other lock files (e.g., SQLite, system-related)
+.env.local
+.next/
+node_modules/
