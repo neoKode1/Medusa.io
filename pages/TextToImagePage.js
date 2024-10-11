@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import Image from 'next/image';  // Import Image component
-import { RefreshCw, ChevronDown } from 'lucide-react';  // Import icons
+import Image from 'next/image';
+import { RefreshCw, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 const TextToImagePage = () => {
-  const [prompt, setPrompt] = useState('');  // State for the prompt input
-  const [generatedImage, setGeneratedImage] = useState(null);  // State for generated image
-  const [isProcessing, setIsProcessing] = useState(false);  // State for loading status
-  const [error, setError] = useState(null);  // State for errors
-  const [showDropdown, setShowDropdown] = useState(false);  // State for dropdown menu
+  const [prompt, setPrompt] = useState('');  // Prompt input
+  const [generatedImage, setGeneratedImage] = useState(null);  // Generated image
+  const [isProcessing, setIsProcessing] = useState(false);  // Loading state
+  const [error, setError] = useState(null);  // Error state
+  const [showDropdown, setShowDropdown] = useState(false);  // Dropdown state
+  const [model, setModel] = useState('flux-schnell');  // Selected model (default flux-schnell)
 
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -19,27 +20,28 @@ const TextToImagePage = () => {
     setError(null);
 
     try {
-      const response = await fetch('/api/stablediffusion', {
+      const response = await fetch('/api/replicate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ value: prompt }),  // Send prompt to API
+        body: JSON.stringify({ prompt, model }),  // Send prompt and model to API
       });
 
       if (response.ok) {
         const data = await response.json();
-        setGeneratedImage(data[0]);  // Set generated image
-        setPrompt('');  // Reset the prompt input after generating image
-        setIsProcessing(false);
+        if (data.imageUrl) {
+          setGeneratedImage(data.imageUrl);  // Ensure the image URL is valid before setting it
+        } else {
+          setError('No image URL returned. Please try again.');
+        }
+        setPrompt('');  // Clear prompt input
       } else {
-        console.error('Error:', response.statusText);
         setError('Failed to generate image. Please try again.');
-        setIsProcessing(false);
       }
     } catch (error) {
-      console.error('Unexpected error:', error);
       setError('An unexpected error occurred while generating the image.');
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -48,8 +50,8 @@ const TextToImagePage = () => {
     <div
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
       style={{
-        backgroundImage: "url('/Medusa.svg.svg')",  // Path to your background image
-        backgroundSize: '2000px',                  // Adjust size (cover/contain/auto)
+        backgroundImage: "url('/Medusa.svg.svg')",
+        backgroundSize: '2000px',
         backgroundPosition: 'center',
       }}
     >
@@ -86,6 +88,15 @@ const TextToImagePage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
+            <label htmlFor="model" className="block text-lg mb-2">Choose Model:</label>
+            <select 
+              value={model} 
+              onChange={(e) => setModel(e.target.value)} 
+              className="block w-full p-2 border border-gray-300 rounded-lg">
+              <option value="flux-schnell">Flux Schnell</option>
+              <option value="stablediffusion">Stable Diffusion</option>
+            </select>
+
             <label htmlFor="prompt" className="block text-lg mb-2">Enter your prompt:</label>
             <textarea
               id="prompt"
@@ -95,6 +106,7 @@ const TextToImagePage = () => {
               placeholder="Describe the image you want to generate..."
               rows={4}
             />
+
             <button
               onClick={handleGenerate}
               disabled={!prompt || isProcessing}
@@ -114,10 +126,10 @@ const TextToImagePage = () => {
                 </div>
               ) : generatedImage ? (
                 <Image
-                  src={generatedImage}
+                  src={generatedImage}  // Ensure this is a valid URL.
                   alt="Generated"
-                  layout="fill"
-                  objectFit="cover"
+                  fill={true}  // Correct usage of the fill prop
+                  style={{ objectFit: "cover" }}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-500">
