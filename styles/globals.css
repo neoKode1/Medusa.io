@@ -2,28 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
-/* Inside globals.css */
+/* Global Reset */
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Arial', sans-serif;
+  overflow-x: hidden;
 }
 
+html, body {
+  height: 100%;
+}
+
+/* Fullscreen video background settings */
+video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the video covers the entire screen */
+  z-index: -1; /* Places video behind other elements */
+}
+
+/* Container for the main content */
 .container {
   max-width: 100%;
   padding: 20px;
+  position: relative;
+  z-index: 10; /* Ensures content stays above the video */
 }
 
+/* Image Styling */
 video, img {
   max-width: 100%;
   height: auto;
 }
 
-
-
+/* Responsive Typography and Padding */
 @media only screen and (max-width: 768px) {
   .container {
     padding: 10px;

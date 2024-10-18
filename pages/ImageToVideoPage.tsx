@@ -39,31 +39,44 @@ const ImageToVideoPage = () => {
     setIsProcessing(true);
     setError(null);
     setProgress(0);
-
+  
     try {
-      const apiEndpoint = '/api/lumaai'; // Only using LumaAI now
+      const apiEndpoint = '/api/lumaai';  // Specify your API endpoint
+  
+      // Ensure the uploaded image is being passed into the request
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt,
-          promptImage: uploadedImage,
-          model,
-          duration: 10,
-          ratio: "16:9",
+          prompt,  // Video generation prompt
+          promptImage: uploadedImage,  // Ensure the uploaded image is passed
+          model,  // Model being used (e.g., LumaAI)
+          duration: 10,  // Length of video
+          ratio: "16:9",  // Video aspect ratio
+          keyframes: {
+            frame0: {
+              type: "image",  // Starting keyframe type as an image
+              url: uploadedImage,  // Reference to the uploaded image
+            },
+            frame1: {
+              type: "image",  // Ending keyframe type as an image (if needed)
+              url: uploadedImage,  // You can set a different URL for the end frame or reuse the start frame
+            }
+          },
+          loop: true,  // Loop the generated video
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`Generation failed. Status: ${response.status}`);
       }
-
+  
       const data = await response.json();
-      const videoUrl = data.videoUrl || data.assets?.video;
+      const videoUrl = data.videoUrl || data.assets?.video;  // Retrieve the video URL
       setGeneratedVideo(videoUrl || null);
-
+  
     } catch (error) {
       const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred.';
       setError(errorMessage);
@@ -71,23 +84,56 @@ const ImageToVideoPage = () => {
       setIsProcessing(false);
     }
   };
+  
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover" style={{ backgroundImage: "url('/Medusa.svg.svg')", backgroundSize: '2000px', backgroundPosition: 'center' }}>
-      <div className="bg-white bg-opacity-20 p-8 rounded-lg max-w-2xl w-full">
+    <div className="relative min-h-screen flex items-center justify-center bg-black">
+      {/* Fullscreen background video */}
+      <video
+        src="/Dream Machine AI-2024-07-06 (2).mp4"
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        autoPlay
+        loop
+        muted
+        playsInline
+      />
+
+      {/* Content over the video */}
+      <div className="relative z-10 bg-black bg-opacity-60 p-8 rounded-lg max-w-2xl w-full">
         <div className="relative mb-8">
           {/* Menu Button */}
-          <button onClick={toggleDropdown} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+          <button
+            onClick={toggleDropdown}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+            style={{ zIndex: 30 }} // Ensure dropdown has a high z-index
+          >
             Menu
             <ChevronDown className="ml-2" />
           </button>
+
           {/* Dropdown Menu */}
           {showDropdown && (
-            <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-10">
-              <li><Link href="/" className="block px-4 py-2 hover:bg-gray-200">Home</Link></li>
-              <li><Link href="/ImageToVideoPage" className="block px-4 py-2 hover:bg-gray-200">Image to Video</Link></li>
-              <li><Link href="/TextToImagePage" className="block px-4 py-2 hover:bg-gray-200">Text to Image</Link></li>
-              <li><Link href="/generate-prompt" className="block px-4 py-2 hover:bg-gray-200">Generate Prompt</Link></li>
+            <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-20">
+              <li>
+                <Link href="/" className="block px-4 py-2 bg-white text-black hover:bg-gray-200">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="/ImageToVideoPage" className="block px-4 py-2 bg-white text-black hover:bg-gray-200">
+                  Image to Video
+                </Link>
+              </li>
+              <li>
+                <Link href="/TextToImagePage" className="block px-4 py-2 bg-white text-black hover:bg-gray-200">
+                  Text to Image
+                </Link>
+              </li>
+              <li>
+                <Link href="/generate-prompt" className="block px-4 py-2 bg-white text-black hover:bg-gray-200">
+                  Generate Prompt
+                </Link>
+              </li>
             </ul>
           )}
         </div>

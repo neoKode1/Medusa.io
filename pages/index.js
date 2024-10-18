@@ -15,25 +15,41 @@ export default function Home() {
         <title>medusa.io</title>
       </Head>
 
-      {/* Background image option (add your background image to the public folder if needed) */}
-      <main className="flex flex-col min-h-screen bg-black p-8 bg-cover bg-center" style={{ backgroundImage: "url('/Medusa.svg.png')" }}>
-        <div className="flex flex-col items-center justify-center flex-grow">
+      {/* Background video */}
+      <main className="relative flex flex-col min-h-screen">
+        
+        {/* Fullscreen background video */}
+        <video
+          src="/cyberpunk girl1.mp4"
+          className="absolute top-0 left-0 w-full h-full object-cover z-0"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+
+        {/* Overlay to darken the background video slightly for readability */}
+        <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50 z-10"></div>
+
+        {/* Content over the video */}
+        <div className="relative z-20 flex flex-col items-center justify-center flex-grow text-center text-white p-8">
+          
           {/* Title and Subtitle */}
-          <div className="text-center">
-            <h1 className="text-8xl font-bold text-white mb-4">MEDSUSA.io</h1>
-            <p className="text-white text-2xl">Powered by Luma Dream Machine AI with Runway Gen-3 Alpha</p>
+          <div className="mb-8">
+            <h1 className="text-8xl font-bold">MEDSUSA.io</h1>
+            <p className="text-2xl">Powered with Luma Dream Machine along with Flux Black Forest</p>
           </div>
 
           {/* Dropdown Menu for Navigation */}
-          <div className="relative mt-8">
+          <div className="relative mt-8 ">
             <button
               onClick={toggleDropdown}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="px-6 py-3 bg-blue-500 text-black rounded-lg hover:bg-blue-600 transition-colors"
             >
               Menu
             </button>
             {isDropdownOpen && (
-              <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-10">
+              <ul className="absolute left-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg z-30">
                 <li>
                   <Link href="/" className="block px-4 py-2 hover:bg-gray-200">
                     Home
@@ -58,20 +74,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* Video Display */}
-          <div className="relative w-[384px] h-[384px] my-8">
-            <video 
-              src="cyberpunk girl1.mp4"
-              className="w-full h-full object-cover rounded-lg"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
-
           {/* Generate Button */}
-          <Link href="/ImageToVideoPage" className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <Link href="/ImageToVideoPage" className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mt-8">
             Generate
           </Link>
         </div>

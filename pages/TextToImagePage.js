@@ -4,43 +4,64 @@ import { RefreshCw, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 const TextToImagePage = () => {
-  const [prompt, setPrompt] = useState('');  // Prompt input
-  const [generatedImage, setGeneratedImage] = useState(null);  // Generated image
-  const [isProcessing, setIsProcessing] = useState(false);  // Loading state
-  const [error, setError] = useState(null);  // Error state
-  const [showDropdown, setShowDropdown] = useState(false);  // Dropdown state
-  const [model, setModel] = useState('flux-schnell');  // Selected model (default flux-schnell)
+  const [prompt, setPrompt] = useState('');
+  const [generatedContent, setGeneratedContent] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [model, setModel] = useState('flux-schnell');
+  const [progress, setProgress] = useState(0);
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
 
+  const handleUpload = (event) => {
+    const file = event.target?.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setUploadedImage(e.target.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleGenerate = async () => {
     setIsProcessing(true);
     setError(null);
+    setProgress(0);
+    setGeneratedContent(null);
 
     try {
-      const response = await fetch('/api/replicate', {
+      const apiEndpoint = '/api/replicate';
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt, model }),  // Send prompt and model to API
+        body: JSON.stringify({
+          prompt,
+          model,
+          ...(uploadedImage && { promptImage: uploadedImage }),
+        }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.imageUrl) {
-          setGeneratedImage(data.imageUrl);  // Ensure the image URL is valid before setting it
-        } else {
-          setError('No image URL returned. Please try again.');
-        }
-        setPrompt('');  // Clear prompt input
-      } else {
-        setError('Failed to generate image. Please try again.');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Generation failed. Status: ${response.status}`);
       }
+
+      const data = await response.json();
+      setGeneratedContent(data.imageUrl);
+      setProgress(100);
+
     } catch (error) {
-      setError('An unexpected error occurred while generating the image.');
+      console.error('Error:', error);
+      setError(error.message);
     } finally {
       setIsProcessing(false);
     }
@@ -50,7 +71,7 @@ const TextToImagePage = () => {
     <div
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
       style={{
-        backgroundImage: "url('/Medusa.svg.svg')",
+        backgroundImage: "url('/IMG_5135 (1).JPG')",
         backgroundSize: '2000px',
         backgroundPosition: 'center',
       }}
@@ -103,37 +124,40 @@ const TextToImagePage = () => {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="w-full p-2 bg-white-800 rounded-lg text-black border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Describe the image you want to generate..."
+              placeholder="Describe the content you want to generate..."
               rows={4}
             />
+
+            <label htmlFor="image-upload" className="block text-lg mb-2">Upload reference image (optional):</label>
+            <input type="file" accept="image/*" onChange={handleUpload} />
 
             <button
               onClick={handleGenerate}
               disabled={!prompt || isProcessing}
               className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isProcessing ? 'Generating...' : 'Generate Image'}
+              {isProcessing ? 'Generating...' : 'Generate Content'}
             </button>
             {error && <p className="text-red-500">{error}</p>}
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Generated Image</h2>
+            <h2 className="text-2xl font-semibold">Generated Content</h2>
             <div className="relative aspect-square bg-white-800 rounded-lg overflow-hidden">
               {isProcessing ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <RefreshCw className="w-16 h-16 animate-spin text-blue-500" />
                 </div>
-              ) : generatedImage ? (
+              ) : generatedContent ? (
                 <Image
-                  src={generatedImage}  // Ensure this is a valid URL.
-                  alt="Generated"
-                  fill={true}  // Correct usage of the fill prop
+                  src={generatedContent}
+                  alt="Generated Image"
+                  fill={true}
                   style={{ objectFit: "cover" }}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  Your generated image will appear here
+                  Your generated content will appear here
                 </div>
               )}
             </div>
