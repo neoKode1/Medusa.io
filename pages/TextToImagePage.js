@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { RefreshCw, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ const TextToImagePage = () => {
   const [model, setModel] = useState('flux-schnell');
   const [progress, setProgress] = useState(0);
   const [uploadedImage, setUploadedImage] = useState(null);
+  const videoRef = useRef(null);
 
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -67,16 +68,27 @@ const TextToImagePage = () => {
     }
   };
 
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.5; // Adjust playback speed if needed
+    }
+  }, []);
+
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
-      style={{
-        backgroundImage: "url('/IMG_5135 (1).JPG')",
-        backgroundSize: '2000px',
-        backgroundPosition: 'center',
-      }}
-    >
-      <div className="bg-white bg-opacity-20 p-8 rounded-lg max-w-2xl w-full">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+      >
+        <source src="/gen-g.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      <div className="bg-white bg-opacity-20 p-8 rounded-lg max-w-2xl w-full relative z-10">
         <div className="relative mb-8">
           <button
             onClick={toggleDropdown}
@@ -105,7 +117,7 @@ const TextToImagePage = () => {
           )}
         </div>
 
-        <h1 className="text-7xl font-bold mb-12 text-center text-[#64748b]">MEDSUSA.io</h1>
+        <h1 className="text-7xl font-bold mb-12 text-center text-[white]">MEDSUSA.io</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">

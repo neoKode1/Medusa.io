@@ -138,7 +138,7 @@ const ImageToVideoPage = () => {
           )}
         </div>
 
-        <h1 className="text-7xl font-bold mb-12 text-center text-[#64748b]">MEDSUSA.io</h1>
+        <h1 className="text-7xl font-bold mb-12 text-center text-[white]">MEDSUSA.io</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">

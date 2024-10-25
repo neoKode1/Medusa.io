@@ -2,28 +2,23 @@ import { LumaAI } from 'lumaai';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} not allowed`);
+    return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const lumaai = new LumaAI(process.env.LUMAAI_API_KEY);
+
+  console.log('API Key:', process.env.LUMAAI_API_KEY);
 
   try {
     const { prompt, model = 'gen3a_turbo', duration = 10, ratio = '16:9', promptImage } = req.body;
-
-    if (!process.env.LUMAAI_API_KEY) {
-      throw new Error('LumaAI API key is missing.');
-    }
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       throw new Error('Invalid or missing prompt.');
     }
 
-    const client = new LumaAI({
-      authToken: process.env.LUMAAI_API_KEY,
-    });
-
     let generation;
     try {
-      generation = await client.generations.create({
+      generation = await lumaai.generations.create({
         prompt,
         model,
         duration,
@@ -42,7 +37,7 @@ export default async function handler(req, res) {
 
     while (!completed && retryCount < maxRetries) {
       try {
-        generation = await client.generations.get(generation.id);
+        generation = await lumaai.generations.get(generation.id);
         console.log(`Generation status: ${generation.state}, Progress: ${generation.progressPercent || 0}%`);
 
         if (generation.state === "completed") {
@@ -79,6 +74,6 @@ export default async function handler(req, res) {
     res.status(200).json({ videoUrl });
   } catch (error) {
     console.error('Error generating video with LumaAI:', error);
-    res.status(500).json({ message: 'Failed to generate video with LumaAI', error: error.message });
+    res.status(500).json({ error: error.message });
   }
 }
