@@ -119,6 +119,16 @@ export default function GeneratePrompt() {
             onChange={(e) => setDescription(e.target.value)}
             required
             fullWidth
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  animation: 'randomGlow 5s infinite',
+                },
+                '&.Mui-focused fieldset': {
+                  animation: 'randomGlow 5s infinite',
+                }
+              }
+            }}
           />
 
           <Select
@@ -171,7 +181,12 @@ export default function GeneratePrompt() {
             variant="contained" 
             color="primary"
             disabled={isLoading || !description}
-            sx={{ mt: 2 }}
+            sx={{ 
+              mt: 2,
+              '&:hover': {
+                animation: 'randomGlow 5s infinite',
+              }
+            }}
           >
             {isLoading ? 'Generating...' : `Generate ${mode === 'video' ? 'Video' : 'Image'} Prompt`}
           </Button>

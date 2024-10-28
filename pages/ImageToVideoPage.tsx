@@ -101,7 +101,7 @@ const ImageToVideoPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-black">
+    <div className="relative min-h-screen flex items-center justify-center">
       {/* Fullscreen background video */}
       <video
         src="/Dream Machine AI-2024-07-06 (2).mp4"
@@ -113,13 +113,13 @@ const ImageToVideoPage = () => {
       />
 
       {/* Content over the video */}
-      <div className="relative z-10 bg-black bg-opacity-60 p-8 rounded-lg max-w-2xl w-full">
+      <div className="relative z-10 p-8 rounded-lg max-w-2xl w-full">
         <div className="relative mb-8">
           {/* Menu Button */}
           <button
             onClick={toggleDropdown}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
-            style={{ zIndex: 30 }} // Ensure dropdown has a high z-index
+            className="px-4 py-2 text-white rounded-lg transition-colors flex items-center border border-white hover-glow"
+            style={{ zIndex: 30 }}
           >
             Menu
             <ChevronDown className="ml-2" />
@@ -152,14 +152,17 @@ const ImageToVideoPage = () => {
           )}
         </div>
 
-        <h1 className="text-7xl font-bold mb-12 text-center text-[white]">MEDSUSA.io</h1>
+        <h1 className="text-7xl font-bold mb-12 text-center text-white">MEDSUSA.io</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
             <div>
-              <Label htmlFor="model" className="block text-lg mb-2">Choose Model:</Label>
+              <Label htmlFor="model" className="block text-lg mb-2 text-white">Choose Model:</Label>
               <Select value={model} onValueChange={setModel}>
-                <SelectTrigger id="model" className="w-full p-2 bg-white rounded-lg text-black border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <SelectTrigger 
+                  id="model" 
+                  className="w-full p-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent text-white input-glow"
+                >
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
                 <SelectContent>
@@ -169,15 +172,26 @@ const ImageToVideoPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="prompt" className="block text-lg mb-2">Enter your prompt:</Label>
-              <Textarea id="prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full p-2 bg-white rounded-lg text-black border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Describe the video you want to generate..." rows={4} />
+              <Label htmlFor="prompt" className="block text-lg mb-2 text-white">Enter your prompt:</Label>
+              <Textarea 
+                id="prompt" 
+                value={prompt} 
+                onChange={(e) => setPrompt(e.target.value)} 
+                className="w-full p-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent text-white input-glow" 
+                placeholder="Describe the video you want to generate..." 
+                rows={4} 
+              />
             </div>
 
             <div>
-              <Label htmlFor="image-upload" className="block text-lg mb-2">Upload reference image (optional):</Label>
+              <Label htmlFor="image-upload" className="block text-lg mb-2 text-white">Upload reference image (optional):</Label>
               <div className="flex items-center space-x-4">
                 <Input id="image-upload" type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-                <Button asChild variant="secondary" className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl">
+                <Button 
+                  asChild 
+                  variant="secondary" 
+                  className="w-full py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl border border-white text-white hover-glow"
+                >
                   <label htmlFor="image-upload" className="cursor-pointer flex items-center justify-center">
                     <span>Choose File</span>
                   </label>
@@ -186,15 +200,19 @@ const ImageToVideoPage = () => {
               {uploadedImage && <p className="text-green-600 mt-2">Image uploaded</p>}
             </div>
 
-            <Button onClick={handleGenerate} disabled={isProcessing || !prompt} className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl disabled:opacity-50 disabled:cursor-not-allowed">
+            <Button 
+              onClick={handleGenerate} 
+              disabled={isProcessing || !prompt} 
+              className="w-full py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl disabled:opacity-50 disabled:cursor-not-allowed border border-white text-white hover-glow"
+            >
               {isProcessing ? 'Generating...' : 'Generate Video'}
             </Button>
             {error && <p className="text-red-500">{error}</p>}
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Generated Video</h2>
-            <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+            <h2 className="text-2xl font-semibold text-white">Generated Video</h2>
+            <div className="relative aspect-video bg-transparent rounded-lg overflow-hidden border border-gray-700">
               {isProcessing ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <RefreshCw className="w-16 h-16 animate-spin text-blue-500 mb-4" />
@@ -207,7 +225,7 @@ const ImageToVideoPage = () => {
                   Your browser does not support the video tag.
                 </video>
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                <div className="absolute inset-0 flex items-center justify-center text-white">
                   Your generated video will appear here
                 </div>
               )}

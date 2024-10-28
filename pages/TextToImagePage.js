@@ -103,17 +103,17 @@ const TextToImagePage = () => {
         Your browser does not support the video tag.
       </video>
 
-      <div className="bg-white bg-opacity-20 p-8 rounded-lg max-w-2xl w-full relative z-10">
-        <div className="relative mb-8">
+      <div className="p-4 sm:p-6 md:p-8 rounded-lg w-full max-w-2xl mx-4 relative z-10">
+        <div className="relative mb-4 sm:mb-8">
           <button
             onClick={toggleDropdown}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 text-white rounded-lg transition-colors flex items-center text-sm sm:text-base border border-white"
           >
             Menu
-            <ChevronDown className="ml-2" />
+            <ChevronDown className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           {showDropdown && (
-            <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-10">
+            <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-20">
               <li>
                 <Link href="/" className="block px-4 py-2 hover:bg-gray-200">Home</Link>
               </li>
@@ -132,48 +132,59 @@ const TextToImagePage = () => {
           )}
         </div>
 
-        <h1 className="text-7xl font-bold mb-12 text-center text-[white]">MEDSUSA.io</h1>
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 sm:mb-12 text-center text-white">MEDSUSA.io</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <label htmlFor="model" className="block text-lg mb-2">Choose Model:</label>
-            <select 
-              value={model} 
-              onChange={(e) => setModel(e.target.value)} 
-              className="block w-full p-2 border border-gray-300 rounded-lg">
-              <option value="flux-schnell">Flux Schnell</option>
-              <option value="stablediffusion">Stable Diffusion</option>
-            </select>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+          <div className="space-y-4 sm:space-y-6">
+            <div>
+              <label htmlFor="model" className="block text-base sm:text-lg mb-2 text-white">Choose Model:</label>
+              <select 
+                value={model} 
+                onChange={(e) => setModel(e.target.value)} 
+                className="block w-full p-2 border border-gray-300 rounded-lg text-sm sm:text-base bg-transparent text-white input-glow">
+                <option value="flux-schnell" className="text-black">Flux Schnell</option>
+                <option value="stablediffusion" className="text-black">Stable Diffusion</option>
+              </select>
+            </div>
 
-            <label htmlFor="prompt" className="block text-lg mb-2">Enter your prompt:</label>
-            <textarea
-              id="prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="w-full p-2 bg-white-800 rounded-lg text-black border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Describe the content you want to generate..."
-              rows={4}
-            />
+            <div>
+              <label htmlFor="prompt" className="block text-base sm:text-lg mb-2 text-white">Enter your prompt:</label>
+              <textarea
+                id="prompt"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="w-full p-2 bg-transparent rounded-lg text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base input-glow"
+                placeholder="Describe the content you want to generate..."
+                rows={4}
+              />
+            </div>
 
-            <label htmlFor="image-upload" className="block text-lg mb-2">Upload reference image (optional):</label>
-            <input type="file" accept="image/*" onChange={handleUpload} />
+            <div>
+              <label htmlFor="image-upload" className="block text-base sm:text-lg mb-2 text-white">Upload reference image (optional):</label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleUpload}
+                className="w-full text-sm sm:text-base text-white input-glow" 
+              />
+            </div>
 
             <button
               onClick={handleGenerate}
               disabled={!prompt || isProcessing}
-              className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2 sm:py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-base sm:text-xl disabled:opacity-50 disabled:cursor-not-allowed text-white border border-white hover-glow"
             >
               {isProcessing ? 'Generating...' : 'Generate Content'}
             </button>
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p className="text-red-500 text-sm sm:text-base">{error}</p>}
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Generated Content</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold text-white">Generated Content</h2>
             <div className="relative aspect-square bg-white-800 rounded-lg overflow-hidden">
               {isProcessing ? (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <RefreshCw className="w-16 h-16 animate-spin text-blue-500" />
+                  <RefreshCw className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-blue-500" />
                 </div>
               ) : generatedContent ? (
                 <Image
@@ -181,9 +192,10 @@ const TextToImagePage = () => {
                   alt="Generated Image"
                   fill={true}
                   style={{ objectFit: "cover" }}
+                  className="rounded-lg"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                <div className="absolute inset-0 flex items-center justify-center text-white text-sm sm:text-base p-4 text-center">
                   Your generated content will appear here
                 </div>
               )}

@@ -44,7 +44,7 @@ export default function Home() {
           <div className="relative mt-8 ">
             <button
               onClick={toggleDropdown}
-              className="px-6 py-3 bg-blue-500 text-black rounded-lg hover:bg-blue-600 transition-colors"
+              className="px-6 py-3 text-white rounded-lg transition-colors border border-white hover-glow"
             >
               Menu
             </button>
@@ -75,7 +75,10 @@ export default function Home() {
           </div>
 
           {/* Generate Button */}
-          <Link href="/ImageToVideoPage" className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mt-8">
+          <Link 
+            href="/ImageToVideoPage" 
+            className="px-6 py-3 text-white rounded-lg transition-colors mt-8 border border-white hover-glow"
+          >
             Generate
           </Link>
         </div>
