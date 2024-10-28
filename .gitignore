@@ -37,3 +37,6 @@ out/              # Next.js static export folder (if using static HTML export)
 .env.local
 .next/
 node_modules/
+__pycache__/
+*.pyc
+.DS_Store
