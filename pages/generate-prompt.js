@@ -89,126 +89,193 @@ export default function GeneratePrompt() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Prompt Generator
-        </Typography>
-        
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {/* Mode Selection Dropdown */}
-          <Select
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            displayEmpty
-            fullWidth
-            label="Generation Mode"
-          >
-            {MODES.map((mode) => (
-              <MenuItem key={mode.value} value={mode.value}>
-                {mode.label}
-              </MenuItem>
-            ))}
-          </Select>
+    <Box sx={{ 
+      position: 'relative',
+      minHeight: '100vh',
+      width: '100%',
+      overflow: 'hidden'
+    }}>
+      {/* Background Video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: -1,
+        }}
+      >
+        <source src="/gremlinvid.mp4" type="video/mp4" />
+      </video>
 
-          <TextField
-            label={`Describe your ${mode === 'video' ? 'video' : 'image'}`}
-            multiline
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            fullWidth
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  animation: 'randomGlow 5s infinite',
+      {/* Content Container */}
+      <Container maxWidth="md" sx={{ 
+        py: 4,
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <Paper elevation={3} sx={{ 
+          p: 4,
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+        }}>
+          <Typography variant="h4" gutterBottom sx={{ color: 'white' }}>
+            Prompt Generator
+          </Typography>
+          
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Mode Selection Dropdown */}
+            <Select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              displayEmpty
+              fullWidth
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                '& .MuiSelect-icon': {
+                  color: 'white',
                 },
-                '&.Mui-focused fieldset': {
-                  animation: 'randomGlow 5s infinite',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.7)',
+                },
+              }}
+            >
+              {MODES.map((mode) => (
+                <MenuItem key={mode.value} value={mode.value}>
+                  {mode.label}
+                </MenuItem>
+              ))}
+            </Select>
+
+            <TextField
+              label={`Describe your ${mode === 'video' ? 'video' : 'image'}`}
+              multiline
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.7)',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: 'white',
+                },
+              }}
+              InputLabelProps={{
+                style: { color: 'rgba(255, 255, 255, 0.7)' },
+              }}
+            />
+
+            {/* Style the Select components similarly */}
+            {['genre', 'reference', 'style'].map((selectField) => (
+              <Select
+                key={selectField}
+                value={eval(selectField)}
+                onChange={(e) => eval(`set${selectField.charAt(0).toUpperCase() + selectField.slice(1)}`)(e.target.value)}
+                displayEmpty
+                fullWidth
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  '& .MuiSelect-icon': {
+                    color: 'white',
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255, 255, 255, 0.7)',
+                  },
+                }}
+              >
+                <MenuItem value="">Select {selectField.charAt(0).toUpperCase() + selectField.slice(1)}</MenuItem>
+                {selectField === 'genre' && Object.keys(GENRES).map((genre) => (
+                  <MenuItem key={genre} value={genre}>
+                    {genre.charAt(0).toUpperCase() + genre.slice(1)}
+                  </MenuItem>
+                ))}
+                {selectField === 'reference' && getReferences().map((ref) => (
+                  <MenuItem key={ref} value={ref}>{ref}</MenuItem>
+                ))}
+                {selectField === 'style' && STYLES.map((style) => (
+                  <MenuItem key={style} value={style}>{style}</MenuItem>
+                ))}
+              </Select>
+            ))}
+
+            <Button 
+              type="submit" 
+              variant="contained"
+              disabled={isLoading || !description}
+              sx={{ 
+                mt: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                },
+                '&:disabled': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'rgba(255, 255, 255, 0.3)',
                 }
-              }
-            }}
-          />
+              }}
+            >
+              {isLoading ? 'Generating...' : `Generate ${mode === 'video' ? 'Video' : 'Image'} Prompt`}
+            </Button>
 
-          <Select
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            displayEmpty
-            fullWidth
-            label="Genre"
-          >
-            <MenuItem value="">Select Genre</MenuItem>
-            {Object.keys(GENRES).map((genre) => (
-              <MenuItem key={genre} value={genre}>
-                {genre.charAt(0).toUpperCase() + genre.slice(1)}
-              </MenuItem>
-            ))}
-          </Select>
-
-          <Select
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            displayEmpty
-            fullWidth
-            label="Reference"
-          >
-            <MenuItem value="">Select Reference</MenuItem>
-            {getReferences().map((ref) => (
-              <MenuItem key={ref} value={ref}>
-                {ref}
-              </MenuItem>
-            ))}
-          </Select>
-
-          <Select
-            value={style}
-            onChange={(e) => setStyle(e.target.value)}
-            displayEmpty
-            fullWidth
-            label="Style"
-          >
-            <MenuItem value="">Select Style</MenuItem>
-            {STYLES.map((style) => (
-              <MenuItem key={style} value={style}>
-                {style}
-              </MenuItem>
-            ))}
-          </Select>
-
-          <Button 
-            type="submit" 
-            variant="contained" 
-            color="primary"
-            disabled={isLoading || !description}
-            sx={{ 
-              mt: 2,
-              '&:hover': {
-                animation: 'randomGlow 5s infinite',
-              }
-            }}
-          >
-            {isLoading ? 'Generating...' : `Generate ${mode === 'video' ? 'Video' : 'Image'} Prompt`}
-          </Button>
-
-          {error && (
-            <Typography color="error" sx={{ mt: 2 }}>
-              {error}
-            </Typography>
-          )}
-
-          {generatedPrompt && (
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h6" gutterBottom>
-                Generated Prompt:
+            {error && (
+              <Typography color="error" sx={{ mt: 2, color: '#ff6b6b' }}>
+                {error}
               </Typography>
-              <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.50' }}>
-                <Typography>{generatedPrompt}</Typography>
-              </Paper>
-            </Box>
-          )}
-        </Box>
-      </Paper>
-    </Container>
+            )}
+
+            {generatedPrompt && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
+                  Generated Prompt:
+                </Typography>
+                <Paper elevation={1} sx={{ 
+                  p: 2, 
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                }}>
+                  <Typography>{generatedPrompt}</Typography>
+                </Paper>
+              </Box>
+            )}
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 }
