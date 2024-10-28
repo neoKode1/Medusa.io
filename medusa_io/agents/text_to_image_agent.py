@@ -2,8 +2,11 @@ from typing import Dict, List
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 class TextToImageAgent:
     def __init__(self):
@@ -60,3 +63,18 @@ class TextToImageAgent:
     def get_history(self) -> List[Dict]:
         """Get the prompt generation history"""
         return self.prompt_history
+
+    async def generate(self, prompt, search_context):
+        logger.info(f"Starting image generation for prompt: {prompt}")
+        try:
+            logger.info(f"Using search context: {search_context[:100]}...")
+            # ... existing code ...
+
+            logger.info("Sending request to image generation API")
+            # ... API call ...
+
+            logger.info("Image generation completed")
+            return result
+        except Exception as e:
+            logger.error(f"Image generation failed: {str(e)}", exc_info=True)
+            raise

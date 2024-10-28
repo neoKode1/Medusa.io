@@ -4,8 +4,10 @@ import requests
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 class WebSearchAgent:
     def __init__(self, api_key: str):
@@ -80,3 +82,27 @@ class WebSearchAgent:
     def clear_history(self):
         """Clear the search history"""
         self.search_history = []
+
+    def search(self, query: str) -> List[str]:
+        """
+        Synchronous search for reference images
+        """
+        logger.info(f"Performing web search for: {query[:50]}...")
+        try:
+            # Placeholder implementation - replace with actual search logic
+            return ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
+        except Exception as e:
+            logger.error(f"Web search failed: {str(e)}")
+            return []
+            
+    async def async_search(self, query: str) -> List[str]:
+        """
+        Asynchronous search for reference images
+        """
+        logger.info(f"Performing async web search for: {query[:50]}...")
+        try:
+            # Placeholder implementation - replace with actual async search logic
+            return ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
+        except Exception as e:
+            logger.error(f"Async web search failed: {str(e)}")
+            return []
