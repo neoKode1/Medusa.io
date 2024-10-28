@@ -51,22 +51,11 @@ const ImageToVideoPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt,  // Video generation prompt
-          promptImage: uploadedImage,  // Ensure the uploaded image is passed
-          model,  // Model being used (e.g., LumaAI)
-          duration: 10,  // Length of video
-          ratio: "16:9",  // Video aspect ratio
-          keyframes: {
-            frame0: {
-              type: "image",  // Starting keyframe type as an image
-              url: uploadedImage,  // Reference to the uploaded image
-            },
-            frame1: {
-              type: "image",  // Ending keyframe type as an image (if needed)
-              url: uploadedImage,  // You can set a different URL for the end frame or reuse the start frame
-            }
-          },
-          loop: true,  // Loop the generated video
+          prompt,  // Uses the raw prompt from user input
+          promptImage: uploadedImage,
+          model,
+          duration: 10,
+          ratio: "16:9",
         }),
       });
   

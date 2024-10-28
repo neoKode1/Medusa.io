@@ -3,6 +3,7 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import logging
+import aiohttp
 
 load_dotenv()
 
@@ -68,13 +69,28 @@ class TextToImageAgent:
         logger.info(f"Starting image generation for prompt: {prompt}")
         try:
             logger.info(f"Using search context: {search_context[:100]}...")
-            # ... existing code ...
-
-            logger.info("Sending request to image generation API")
-            # ... API call ...
+            image_result = None
+            
+            # Use the original prompt directly without enhancement
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    'http://localhost:3000/api/replicate',
+                    json={
+                        'prompt': prompt,  # Use original prompt directly
+                        'model': 'flux-schnell',
+                    }
+                ) as response:
+                    if response.status != 200:
+                        raise Exception(f"API request failed with status {response.status}")
+                    
+                    data = await response.json()
+                    image_result = data.get('imageUrl')
+                    
+                    if not image_result:
+                        raise Exception("No image URL in response")
 
             logger.info("Image generation completed")
-            return result
+            return image_result
         except Exception as e:
             logger.error(f"Image generation failed: {str(e)}", exc_info=True)
             raise

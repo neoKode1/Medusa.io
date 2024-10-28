@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import logging
 import asyncio
+import aiohttp
 
 load_dotenv()
 
@@ -22,24 +23,57 @@ class TextToVideoAgent:
         logger.info(f"Starting video generation for prompt: {prompt}")
         try:
             logger.info("Preparing video generation parameters")
-            # ... existing code ...
+            video_result = None
+            
+            # Use the original prompt directly without enhancement
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    'http://localhost:3000/api/lumaai',
+                    json={
+                        'prompt': prompt,  # Use original prompt directly
+                        'promptImage': image_input,
+                        'model': 'luma',
+                        'duration': 10,
+                        'ratio': '16:9'
+                    }
+                ) as response:
+                    if response.status != 200:
+                        raise Exception(f"API request failed with status {response.status}")
+                    
+                    data = await response.json()
+                    generation_id = data.get('id')
+                    
+                    if not generation_id:
+                        raise Exception("No generation ID in response")
 
-            logger.info("Sending request to video generation API")
-            # ... API call ...
-
-            logger.info("Waiting for video generation")
-            while True:
-                status = await self.check_status()
-                logger.info(f"Generation status: {status}")
-                if status == 'completed':
-                    break
-                await asyncio.sleep(5)
+                    # Poll for completion
+                    while True:
+                        async with session.get(
+                            f'http://localhost:3000/api/lumaai/status/{generation_id}'
+                        ) as status_response:
+                            status_data = await status_response.json()
+                            
+                            if status_data.get('state') == 'completed':
+                                video_result = status_data.get('videoUrl')
+                                break
+                            elif status_data.get('state') == 'failed':
+                                raise Exception("Video generation failed")
+                                
+                            await asyncio.sleep(5)
 
             logger.info("Video generation completed successfully")
-            return result
+            return video_result
         except Exception as e:
             logger.error(f"Video generation failed: {str(e)}", exc_info=True)
             raise
+
+    async def check_status(self):
+        """This method is now handled within generate()"""
+        pass
+
+    async def fetch_video_result(self):
+        """This method is now handled within generate()"""
+        pass
 
     def generate_video_prompt(self, original_prompt: str, reference_images: List[str]) -> str:
         """

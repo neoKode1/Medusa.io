@@ -45,7 +45,7 @@ const TextToImagePage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt,
+          prompt, // Uses the raw prompt from user input
           model,
           ...(uploadedImage && { promptImage: uploadedImage }),
         }),
@@ -181,4 +181,3 @@ const TextToImagePage = () => {
 };
 
 export default TextToImagePage;
-
