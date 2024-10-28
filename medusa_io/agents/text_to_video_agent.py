@@ -14,23 +14,71 @@ class TextToVideoAgent:
     def __init__(self):
         self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.prompt_history = []
-        self.system_prompt = """You are a video prompt engineering expert. 
-        Your task is to enhance the given prompt with detailed descriptions suitable for video generation.
-        Focus on movement, timing, transitions, camera angles, and dynamic elements.
-        Keep the final prompt under 512 characters while maintaining rich detail."""
 
-    async def generate(self, prompt, image_input):
+    def generate_video_prompt(self, original_prompt: str, reference_images: List[str]) -> str:
+        """
+        Generate an enhanced video prompt using OpenAI's API
+        """
+        try:
+            system_message = """You are a prompt engineering expert for video generation.
+            Your task is to enhance the given prompt with detailed visual and temporal descriptions
+            while keeping it under 512 characters. Focus on specific details like movement,
+            transitions, pacing, colors, textures, lighting, and composition."""
+            
+            user_message = f"""Original prompt: {original_prompt}
+            
+            Reference images have been analyzed. Please generate a detailed prompt that:
+            1. Describes the sequence of events and motion
+            2. Specifies visual style and atmosphere
+            3. Details camera movements and transitions
+            4. Describes lighting changes and color evolution
+            5. Maintains narrative consistency
+            
+            Keep the final prompt under 512 characters."""
+            
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": user_message}
+                ]
+            )
+            
+            enhanced_prompt = response.choices[0].message.content
+            
+            # Store in history
+            self.prompt_history.append({
+                "original_prompt": original_prompt,
+                "enhanced_prompt": enhanced_prompt
+            })
+            
+            return enhanced_prompt
+            
+        except Exception as e:
+            logger.error(f"Error generating video prompt: {str(e)}")
+            return original_prompt
+
+    def clear_history(self):
+        """Clear the prompt history"""
+        self.prompt_history = []
+
+    def get_history(self) -> List[Dict]:
+        """Get the prompt generation history"""
+        return self.prompt_history
+
+    async def generate(self, prompt: str, image_input: str = None) -> str:
+        """
+        Generate a video using the provided prompt and optional image input
+        """
         logger.info(f"Starting video generation for prompt: {prompt}")
         try:
-            logger.info("Preparing video generation parameters")
             video_result = None
             
-            # Use the original prompt directly without enhancement
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     'http://localhost:3000/api/lumaai',
                     json={
-                        'prompt': prompt,  # Use original prompt directly
+                        'prompt': prompt,
                         'promptImage': image_input,
                         'model': 'luma',
                         'duration': 10,
@@ -63,95 +111,7 @@ class TextToVideoAgent:
 
             logger.info("Video generation completed successfully")
             return video_result
+
         except Exception as e:
             logger.error(f"Video generation failed: {str(e)}", exc_info=True)
             raise
-
-    async def check_status(self):
-        """This method is now handled within generate()"""
-        pass
-
-    async def fetch_video_result(self):
-        """This method is now handled within generate()"""
-        pass
-
-    def generate_video_prompt(self, original_prompt: str, reference_images: List[str]) -> str:
-        """
-        Generate an enhanced video prompt using OpenAI's API with swarm-like coordination
-        """
-        try:
-            # First, analyze reference images
-            image_analysis = self._analyze_reference_images(reference_images)
-            
-            # Then, generate the enhanced prompt
-            user_message = f"""Original prompt: {original_prompt}
-
-            Reference image analysis: {image_analysis}
-
-            Please generate a detailed video prompt that:
-            1. Captures the core visual elements from the reference images
-            2. Adds dynamic elements and movement
-            3. Specifies camera movements and transitions
-            4. Describes timing and pacing
-            5. Maintains visual consistency with the reference material
-            
-            Keep the final prompt under 512 characters."""
-
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": user_message}
-                ]
-            )
-
-            enhanced_prompt = response.choices[0].message.content
-            
-            # Store in history
-            self.prompt_history.append({
-                "original_prompt": original_prompt,
-                "enhanced_prompt": enhanced_prompt,
-                "reference_images": reference_images
-            })
-            
-            return enhanced_prompt
-            
-        except Exception as e:
-            print(f"Error generating video prompt: {str(e)}")
-            return original_prompt
-
-    def _analyze_reference_images(self, image_urls: List[str]) -> str:
-        """
-        Analyze reference images to extract relevant visual information
-        """
-        try:
-            analysis_prompt = f"""Analyze these image URLs for key visual elements:
-            {', '.join(image_urls)}
-            
-            Focus on:
-            1. Color schemes
-            2. Composition
-            3. Lighting
-            4. Movement potential
-            5. Scene transitions"""
-
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "user", "content": analysis_prompt}
-                ]
-            )
-            
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            print(f"Error analyzing images: {str(e)}")
-            return "Unable to analyze reference images"
-
-    def clear_history(self):
-        """Clear the prompt history"""
-        self.prompt_history = []
-
-    def get_history(self) -> List[Dict]:
-        """Get the prompt generation history"""
-        return self.prompt_history
