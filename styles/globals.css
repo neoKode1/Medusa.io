@@ -49,3 +49,14 @@ video, img {
     font-size: 28px;
   }
 }
+
+/* Add these styles if they don't exist */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+video {
+  object-fit: cover;
+}

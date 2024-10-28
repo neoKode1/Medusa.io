@@ -17,6 +17,7 @@ const ImageToVideoPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number>(0);
   const [showDropdown, setShowDropdown] = useState<boolean>(false); // For dropdown menu
+  const [promptSuggestions, setPromptSuggestions] = useState<string[]>([]);
 
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -84,7 +85,31 @@ const ImageToVideoPage = () => {
       setIsProcessing(false);
     }
   };
-  
+
+  const fetchPromptSuggestions = async (description) => {
+    try {
+      const response = await fetch('/api/generate_prompt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt_type: 'text_to_image', // or 'text_to_video' for TextToVideoPage
+          description,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPrompt(data.generated_prompt);
+        setPromptSuggestions(data.suggestions);
+      } else {
+        console.error('Failed to fetch prompt suggestions');
+      }
+    } catch (error) {
+      console.error('Error fetching prompt suggestions:', error);
+    }
+  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-black">
