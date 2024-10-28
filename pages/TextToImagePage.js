@@ -32,6 +32,11 @@ const TextToImagePage = () => {
   };
 
   const handleGenerate = async () => {
+    if (!prompt.trim()) {
+      setError('Please enter a prompt before generating');
+      return;
+    }
+
     setIsProcessing(true);
     setError(null);
     setProgress(0);
@@ -39,30 +44,40 @@ const TextToImagePage = () => {
 
     try {
       const apiEndpoint = '/api/replicate';
+      const requestBody = {
+        prompt: prompt.trim(),
+        model,
+      };
+
+      if (uploadedImage) {
+        requestBody.promptImage = uploadedImage;
+      }
+
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt, // Uses the raw prompt from user input
-          model,
-          ...(uploadedImage && { promptImage: uploadedImage }),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Generation failed. Status: ${response.status}`);
+        throw new Error(errorData.error || `Generation failed (${response.status}): Please try again`);
       }
 
       const data = await response.json();
+      
+      if (!data.imageUrl) {
+        throw new Error('No image was generated. Please try again.');
+      }
+
       setGeneratedContent(data.imageUrl);
       setProgress(100);
 
     } catch (error) {
-      console.error('Error:', error);
-      setError(error.message);
+      console.error('Generation error:', error);
+      setError(error.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsProcessing(false);
     }
