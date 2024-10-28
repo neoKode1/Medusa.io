@@ -1,11 +1,22 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-// Define the prop types for the Card component and its subcomponents
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
-interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
-interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
-interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+// Define proper interfaces with required properties
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
+
+interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
+
+interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  className?: string;
+}
+
+interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, ...props }, ref) => (
