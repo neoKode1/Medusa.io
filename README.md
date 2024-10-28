@@ -136,27 +136,27 @@ pip install -r requirements.txt
 
 ### 2. Environment Setup
 
-Create a `.env.local` file in the project root with:
-```
-OPENAI_API_KEY=your-openai-api-key-here
-```
-
-### 3. Start the Servers
-
-Start the FastAPI backend server:
+1. Copy `.env.example` to `.env.local`:
 ```bash
-cd medusa_io
-uvicorn main:app --reload --port 8000
+cp .env.example .env.local
 ```
 
-In a new terminal, start the Next.js frontend:
-```bash
-npm run dev
+2. Update `.env.local` with your API keys:
+- Get a LumaAI API key from [LumaAI](https://lumalabs.ai/)
+- Get a Replicate API token from [Replicate](https://replicate.com/)
+- Get OpenAI API key from [OpenAI](https://platform.openai.com/)
+- Set up Google Custom Search API and get credentials
+
+3. Required Environment Variables:
+```
+LUMAAI_API_KEY=       # Your LumaAI API key
+REPLICATE_API_TOKEN=  # Your Replicate API token
+OPENAI_API_KEY=       # Your OpenAI API key (must start with 'sk-')
+SEARCH_API_KEY=       # Your Google Search API key
+SEARCH_ENGINE_ID=     # Your Google Custom Search Engine ID
 ```
 
-### 4. Access the Application
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+⚠️ IMPORTANT: Never commit your `.env.local` file to version control!
 
 ## Troubleshooting
 
