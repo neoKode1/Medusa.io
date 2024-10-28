@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Box, TextField, Select, MenuItem, Button, Typography, Paper, Container } from '@mui/material';
+import Link from 'next/link';
 
 const GENRES = {
   horror: ['The Shining', 'Get Out', 'A Nightmare on Elm Street', 'The Exorcist', 'Hereditary'],
@@ -35,6 +36,7 @@ export default function GeneratePrompt() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Get references based on selected genre
   const getReferences = () => {
@@ -90,6 +92,10 @@ export default function GeneratePrompt() {
     }
   };
 
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
   return (
     <Box sx={{ 
       position: 'relative',
@@ -108,28 +114,117 @@ export default function GeneratePrompt() {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          zIndex: -1,
+          zIndex: 0,
         }}
       >
-        <source src="/gremlinvid.mp4" type="video/mp4" />
+        <source src="/ninja.mp4" type="video/mp4" />
       </video>
+
+      {/* Add overlay for better readability */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 1,
+        }}
+      />
 
       {/* Content Container */}
       <Container maxWidth="md" sx={{ 
         py: 4,
         position: 'relative',
-        zIndex: 1
+        zIndex: 2
       }}>
+        {/* Menu Button */}
+        <Box sx={{ mb: 4, position: 'relative' }}>
+          <Button
+            onClick={toggleDropdown}
+            sx={{
+              px: 4,
+              py: 2,
+              color: 'white',
+              borderRadius: '8px',
+              border: '1px solid white',
+              transition: 'all 0.3s',
+              '&:hover': {
+                boxShadow: '0 0 10px rgba(255, 255, 255, 0.5)',
+              }
+            }}
+          >
+            Menu
+            <Box component="span" sx={{ ml: 1 }}>▼</Box>
+          </Button>
+
+          {/* Dropdown Menu */}
+          {showDropdown && (
+            <Paper sx={{
+              position: 'absolute',
+              left: 0,
+              mt: 1,
+              width: '200px',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              zIndex: 30
+            }}>
+              <Box component="ul" sx={{ p: 0, m: 0, listStyle: 'none' }}>
+                <Box component="li">
+                  <Link href="/" style={{ textDecoration: 'none' }}>
+                    <Box sx={{ px: 4, py: 2, color: 'black', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)' } }}>
+                      Home
+                    </Box>
+                  </Link>
+                </Box>
+                <Box component="li">
+                  <Link href="/ImageToVideoPage" style={{ textDecoration: 'none' }}>
+                    <Box sx={{ px: 4, py: 2, color: 'black', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)' } }}>
+                      Image to Video
+                    </Box>
+                  </Link>
+                </Box>
+                <Box component="li">
+                  <Link href="/TextToImagePage" style={{ textDecoration: 'none' }}>
+                    <Box sx={{ px: 4, py: 2, color: 'black', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)' } }}>
+                      Text to Image
+                    </Box>
+                  </Link>
+                </Box>
+                <Box component="li">
+                  <Link href="/generate-prompt" style={{ textDecoration: 'none' }}>
+                    <Box sx={{ px: 4, py: 2, color: 'black', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)' } }}>
+                      Generate Prompt
+                    </Box>
+                  </Link>
+                </Box>
+              </Box>
+            </Paper>
+          )}
+        </Box>
+
         <Paper elevation={3} sx={{ 
           p: 4,
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'transparent',
           backdropFilter: 'blur(10px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
         }}>
-          <Typography variant="h4" gutterBottom sx={{ color: 'white' }}>
-            Prompt Generator
+          <Typography variant="h4" gutterBottom sx={{ 
+            color: 'white',
+            textAlign: 'center',
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+            fontWeight: 'bold',
+            mb: 4
+          }}>
+            MEDSUSA.io
           </Typography>
           
+          <Typography variant="h5" gutterBottom sx={{ color: 'white', mb: 3 }}>
+            Prompt Generator
+          </Typography>
+
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Mode Selection Dropdown */}
             <Select
@@ -268,7 +363,8 @@ export default function GeneratePrompt() {
                 </Typography>
                 <Paper elevation={1} sx={{ 
                   p: 2, 
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
                   color: 'white',
                 }}>
                   <Typography>{generatedPrompt}</Typography>
