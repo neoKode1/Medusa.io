@@ -50,13 +50,16 @@ export default function GeneratePrompt() {
     setError('');
     
     try {
+      // Add prefix to description
+      const prefixedDescription = `@prompt_dir.txt ${description}`;
+
       const response = await fetch('/api/generate-prompt', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          description,
+          description: prefixedDescription, // Send prefixed description
           genre,
           reference,
           style,
@@ -66,10 +69,9 @@ export default function GeneratePrompt() {
 
       const data = await response.json();
 
-      // Handle quota exceeded error
       if (data.error === 'QUOTA_EXCEEDED') {
         setError('OpenAI API quota exceeded. Please try again later or contact support.');
-        setGeneratedPrompt(description); // Use original prompt as fallback
+        setGeneratedPrompt(description);
         return;
       }
 
@@ -82,7 +84,7 @@ export default function GeneratePrompt() {
     } catch (err) {
       console.error('Error in handleSubmit:', err);
       setError('Failed to generate prompt. Please try again.');
-      setGeneratedPrompt(description); // Use original prompt as fallback
+      setGeneratedPrompt(description);
     } finally {
       setIsLoading(false);
     }

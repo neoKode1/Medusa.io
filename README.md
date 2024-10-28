@@ -121,3 +121,46 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Made with 💜 by the MEDUSA.IO team
 
 Let's create something amazing together! 🚀
+
+# Medusa.io - AI Prompt Generation System
+
+## Setup Instructions
+
+### 1. Install Dependencies
+
+First, install the Python dependencies:
+```bash
+cd medusa_io
+pip install -r requirements.txt
+```
+
+### 2. Environment Setup
+
+Create a `.env.local` file in the project root with:
+```
+OPENAI_API_KEY=your-openai-api-key-here
+```
+
+### 3. Start the Servers
+
+Start the FastAPI backend server:
+```bash
+cd medusa_io
+uvicorn main:app --reload --port 8000
+```
+
+In a new terminal, start the Next.js frontend:
+```bash
+npm run dev
+```
+
+### 4. Access the Application
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Troubleshooting
+
+If you see a connection refused error:
+1. Ensure the FastAPI server is running on port 8000
+2. Check that your OPENAI_API_KEY is valid
+3. Verify both frontend and backend servers are running simultaneously

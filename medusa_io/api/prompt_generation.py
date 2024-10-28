@@ -1,7 +1,7 @@
 # api/prompt_generation.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Dict, List
-from ..agents.agent_team import AgentTeam
+from medusa_io.agents.agent_team import AgentTeam  # Update this import
 import logging
 import os
 from functools import lru_cache
@@ -88,7 +88,6 @@ async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_age
     Generate an enhanced prompt based on web search results and influences
     """
     try:
-        # Validate request data
         logger.info("=== Request Details ===")
         logger.info(f"Request data: {request}")
         
@@ -105,6 +104,10 @@ async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_age
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Request must include either 'prompt' or 'description' field"
             )
+        
+        # Ensure prompt has prefix
+        if not prompt.startswith('@prompt_dir.txt'):
+            prompt = f'@prompt_dir.txt {prompt}'
         
         logger.info(f"Using prompt: {prompt}")
         logger.info(f"Genre: {genre}")
@@ -123,7 +126,10 @@ async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_age
             }
         )
         
-        # Log the result
+        # Ensure the enhanced prompt has the prefix
+        if result.get('enhanced_prompt') and not result['enhanced_prompt'].startswith('@prompt_dir.txt'):
+            result['enhanced_prompt'] = f'@prompt_dir.txt {result["enhanced_prompt"]}'
+        
         logger.info("=== Result Details ===")
         logger.info(f"Result: {result}")
         
@@ -140,7 +146,7 @@ async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_age
         
         return {
             "original_prompt": prompt if 'prompt' in locals() else request.get('description', ''),
-            "enhanced_prompt": prompt if 'prompt' in locals() else request.get('description', ''),
+            "enhanced_prompt": f"@prompt_dir.txt {prompt if 'prompt' in locals() else request.get('description', '')}",
             "reference_images": [],
             "mode": mode,
             "agent_used": "",

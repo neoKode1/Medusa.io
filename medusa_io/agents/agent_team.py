@@ -146,14 +146,17 @@ class AgentTeam:
     def _enhance_prompt_with_context(self, prompt: str, context: str) -> str:
         """Enhance the prompt using the context"""
         try:
+            # Ensure the prompt starts with @prompt_dir.txt
+            if not prompt.startswith('@prompt_dir.txt'):
+                prompt = f'@prompt_dir.txt {prompt}'
+
             system_message = """You are a creative prompt engineer specializing in visual content generation. 
             Your task is to enhance the given prompt by incorporating elements from the provided genre, 
-            reference work, and style. DO NOT return the original prompt unchanged. Instead, create a 
-            detailed, vivid description that maintains the core concept while adding specific visual elements.
+            reference work, and style. Maintain the @prompt_dir.txt prefix in your response.
             
             For example:
-            If given "a wolf" with horror genre and artistic style, don't return "a wolf" - instead create 
-            something like "A menacing wolf emerging from misty shadows, rendered in bold artistic strokes, 
+            If given "@prompt_dir.txt a wolf" with horror genre and artistic style, return something like 
+            "@prompt_dir.txt A menacing wolf emerging from misty shadows, rendered in bold artistic strokes, 
             with glowing red eyes and dark textural fur details"."""
             
             user_message = f"""Original prompt: {prompt}
@@ -162,7 +165,7 @@ class AgentTeam:
             {context}
             
             Create a detailed, enhanced prompt that:
-            1. Maintains the core concept of "{prompt}"
+            1. Maintains the @prompt_dir.txt prefix
             2. Incorporates the mood and atmosphere from the genre
             3. Draws inspiration from the reference work's style and themes
             4. Adds specific visual details and artistic elements
@@ -173,7 +176,7 @@ class AgentTeam:
             logger.info(f"Sending to OpenAI - Prompt: {prompt}, Context: {context}")
             
             response = self.openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",  # Changed from gpt-4 to gpt-3.5-turbo
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": user_message}
@@ -185,31 +188,19 @@ class AgentTeam:
             )
             
             enhanced_prompt = response.choices[0].message.content.strip()
-            logger.info(f"Enhanced prompt: {enhanced_prompt}")
             
-            # If the prompt wasn't enhanced, try one more time
-            if enhanced_prompt == prompt:
-                logger.warning("First attempt returned unchanged prompt, trying again...")
+            # Ensure the enhanced prompt has the prefix
+            if not enhanced_prompt.startswith('@prompt_dir.txt'):
+                enhanced_prompt = f'@prompt_dir.txt {enhanced_prompt}'
                 
-                retry_response = self.openai_client.chat.completions.create(
-                    model="gpt-3.5-turbo",  # Changed from gpt-4 to gpt-3.5-turbo
-                    messages=[
-                        {"role": "system", "content": system_message},
-                        {"role": "user", "content": user_message}
-                    ],
-                    temperature=0.9,
-                    max_tokens=200
-                )
-                
-                enhanced_prompt = retry_response.choices[0].message.content.strip()
-                logger.info(f"Retry enhanced prompt: {enhanced_prompt}")
+            logger.info(f"Enhanced prompt: {enhanced_prompt}")
             
             return enhanced_prompt
             
         except Exception as e:
             logger.error(f"Error in prompt enhancement: {str(e)}")
             logger.error(traceback.format_exc())
-            return f"{prompt} [Enhancement failed: {str(e)}]"
+            return f"@prompt_dir.txt {prompt} [Enhancement failed: {str(e)}]"
         
     async def process_request(self, prompt):
         logger.info(f"Starting request processing with prompt: {prompt}")

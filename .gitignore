@@ -42,3 +42,55 @@ __pycache__/
 .DS_Store
 __pycache__/
 *.pyc
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Logs
+*.log
+medusa.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug files
+.pnpm-debug.log*
+
+# Local Netlify folder
+.netlify
+
+# Testing
+coverage/
+
+# Production
+/build
+
+# Misc
+*.pem
+.env*.local
