@@ -7,10 +7,8 @@ export default async function handler(req, res) {
 
   const lumaai = new LumaAI(process.env.LUMAAI_API_KEY);
 
-  console.log('API Key:', process.env.LUMAAI_API_KEY);
-
   try {
-    const { prompt, model = 'gen3a_turbo', duration = 10, ratio = '16:9', promptImage } = req.body;
+    const { prompt, promptImage, model = 'gen3a_turbo', duration = 10, ratio = '16:9' } = req.body;
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       throw new Error('Invalid or missing prompt.');
@@ -32,7 +30,7 @@ export default async function handler(req, res) {
     }
 
     let completed = false;
-    const maxRetries = 30; // Increased max retries
+    const maxRetries = 30;
     let retryCount = 0;
 
     while (!completed && retryCount < maxRetries) {
@@ -46,7 +44,7 @@ export default async function handler(req, res) {
           throw new Error(`Generation failed: ${generation.failure_reason || 'Unknown reason'}`);
         } else {
           console.log(`Generation in progress... State: ${generation.state}, Attempt ${retryCount + 1} of ${maxRetries}`);
-          await new Promise(r => setTimeout(r, 15000)); // Increased wait time to 15 seconds
+          await new Promise(r => setTimeout(r, 15000)); // Wait 15 seconds between checks
           retryCount++;
         }
       } catch (pollError) {
