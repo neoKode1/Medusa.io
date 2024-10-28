@@ -86,7 +86,7 @@ const ImageToVideoPage = () => {
     }
   };
 
-  const fetchPromptSuggestions = async (description) => {
+  const fetchPromptSuggestions = async (description: string) => {
     try {
       const response = await fetch('/api/generate_prompt', {
         method: 'POST',
@@ -94,7 +94,7 @@ const ImageToVideoPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt_type: 'text_to_image', // or 'text_to_video' for TextToVideoPage
+          prompt_type: 'text_to_video',
           description,
         }),
       });

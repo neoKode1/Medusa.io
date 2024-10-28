@@ -1,137 +1,199 @@
 import { useState } from 'react';
-import { ChevronDown, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
+import { Box, TextField, Select, MenuItem, Button, Typography, Paper, Container } from '@mui/material';
 
-const GeneratePrompt = () => {
+const GENRES = {
+  horror: ['The Shining', 'Get Out', 'A Nightmare on Elm Street', 'The Exorcist', 'Hereditary'],
+  comedy: ['Groundhog Day', 'Superbad', 'Bridesmaids', 'The Big Lebowski', 'Shaun of the Dead'],
+  drama: ['The Godfather', 'The Shawshank Redemption', "Schindler's List", 'Forrest Gump', '12 Years a Slave'],
+  suspense: ['Gone Girl', 'Inception', 'No Country for Old Men', 'Memento', 'Rear Window'],
+  mystery: ['Seven', 'Knives Out', 'Chinatown', 'Mystic River', 'L.A. Confidential']
+};
+
+const BOOKS = [
+  'To Kill a Mockingbird', '1984', 'The Great Gatsby',
+  'Harry Potter and the Philosopher\'s Stone', 'The Catcher in the Rye',
+  'Pride and Prejudice', 'The Lord of the Rings', 'The Alchemist',
+  'The Da Vinci Code', 'The Hunger Games'
+];
+
+const STYLES = [
+  'Cinematic', 'Photorealistic', 'Artistic', 'Abstract',
+  'Film Noir', 'Vintage', 'Modern', 'Fantasy', 'Sci-fi'
+];
+
+const MODES = [
+  { value: 'image', label: 'Text to Image' },
+  { value: 'video', label: 'Text to Video' }
+];
+
+export default function GeneratePrompt() {
   const [description, setDescription] = useState('');
-  const [generatedPrompts, setGeneratedPrompts] = useState([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState(null);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [genre, setGenre] = useState('');
+  const [reference, setReference] = useState('');
+  const [style, setStyle] = useState('');
+  const [mode, setMode] = useState('image'); // Default to image mode
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
+  // Get references based on selected genre
+  const getReferences = () => {
+    if (genre && GENRES[genre.toLowerCase()]) {
+      return [...GENRES[genre.toLowerCase()], ...BOOKS];
+    }
+    return BOOKS;
   };
 
-  const handleGenerate = async () => {
-    setIsProcessing(true);
-    setError(null);
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    
     try {
       const response = await fetch('/api/generate-prompt', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ description }),
+        body: JSON.stringify({
+          description,
+          genre,
+          reference,
+          style,
+          mode,
+        }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setGeneratedPrompts([...generatedPrompts, data.prompt]);
-        setDescription('');
-        setIsProcessing(false);
-      } else {
-        console.error('Error:', response.statusText);
-        setError('Failed to generate prompt. Please try again.');
-        setIsProcessing(false);
+      const data = await response.json();
+
+      // Handle quota exceeded error
+      if (data.error === 'QUOTA_EXCEEDED') {
+        setError('OpenAI API quota exceeded. Please try again later or contact support.');
+        setGeneratedPrompt(description); // Use original prompt as fallback
+        return;
       }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      setError('An unexpected error occurred while generating the prompt.');
-      setIsProcessing(false);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to generate prompt');
+      }
+
+      setGeneratedPrompt(data.enhanced_prompt || description);
+      
+    } catch (err) {
+      console.error('Error in handleSubmit:', err);
+      setError('Failed to generate prompt. Please try again.');
+      setGeneratedPrompt(description); // Use original prompt as fallback
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-      >
-        <source src="/medusa-video.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-
-      {/* Update overlay to be more transparent */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-30 z-10"></div>
-
-      {/* Update main content container to be more transparent */}
-      <div className="relative z-20 bg-white/20 backdrop-blur-sm p-8 rounded-lg max-w-2xl w-full">
-        {/* Update text colors for better visibility */}
-        <div className="relative mb-8">
-          <button
-            onClick={toggleDropdown}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Prompt Generator
+        </Typography>
+        
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {/* Mode Selection Dropdown */}
+          <Select
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+            displayEmpty
+            fullWidth
+            label="Generation Mode"
           >
-            Menu
-            <ChevronDown className="ml-2" />
-          </button>
-          {showDropdown && (
-            <ul className="absolute left-0 mt-2 w-48 bg-white/90 backdrop-blur-sm shadow-lg rounded-lg z-10">
-              <li>
-                <Link href="/" className="block px-4 py-2 hover:bg-gray-200/50">Home</Link>
-              </li>
-              <li>
-                <Link href="/ImageToVideoPage" className="block px-4 py-2 hover:bg-gray-200/50">Image to Video</Link>
-              </li>
-              <li>
-                <Link href="/TextToImagePage" className="block px-4 py-2 hover:bg-gray-200/50">Text to Image</Link>
-              </li>
-              <li>
-                <Link href="/generate-prompt" className="block px-4 py-2 hover:bg-gray-200/50">Generate Prompt</Link>
-              </li>
-            </ul>
-          )}
-        </div>
+            {MODES.map((mode) => (
+              <MenuItem key={mode.value} value={mode.value}>
+                {mode.label}
+              </MenuItem>
+            ))}
+          </Select>
 
-        <h1 className="text-4xl font-bold mb-8 text-center text-white">Unlock limitless potential with an AI generated prompt</h1>
-
-        <div className="space-y-6">
-          <label htmlFor="description" className="block text-lg mb-2 text-white">Describe what you want:</label>
-          <textarea
-            id="description"
+          <TextField
+            label={`Describe your ${mode === 'video' ? 'video' : 'image'}`}
+            multiline
+            rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 bg-white/10 backdrop-blur-sm rounded-lg text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-white/50"
-            placeholder="Describe the image or video you want to generate..."
-            rows={4}
+            required
+            fullWidth
           />
-          <button
-            onClick={handleGenerate}
-            disabled={!description || isProcessing}
-            className="w-full py-3 bg-gradient-to-r from-blue-500/80 to-purple-600/80 hover:from-blue-600/80 hover:to-purple-700/80 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl disabled:opacity-50 disabled:cursor-not-allowed text-white"
+
+          <Select
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            displayEmpty
+            fullWidth
+            label="Genre"
           >
-            {isProcessing ? (
-              <RefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
-            ) : (
-              'Generate Prompt'
-            )}
-          </button>
-          {error && <p className="text-red-300">{error}</p>}
-        </div>
+            <MenuItem value="">Select Genre</MenuItem>
+            {Object.keys(GENRES).map((genre) => (
+              <MenuItem key={genre} value={genre}>
+                {genre.charAt(0).toUpperCase() + genre.slice(1)}
+              </MenuItem>
+            ))}
+          </Select>
 
-        {/* Update Generated Prompts section */}
-        <div className="mt-8 space-y-4">
-          <h2 className="text-2xl font-semibold mb-4 text-white">Generated Prompts</h2>
-          {generatedPrompts.length > 0 ? (
-            <ul className="space-y-2">
-              {generatedPrompts.map((prompt, index) => (
-                <li key={index} className="p-4 bg-white/10 backdrop-blur-sm rounded-lg shadow-md text-white">
-                  <p>{prompt}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-white/70">Your generated prompts will appear here.</p>
+          <Select
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            displayEmpty
+            fullWidth
+            label="Reference"
+          >
+            <MenuItem value="">Select Reference</MenuItem>
+            {getReferences().map((ref) => (
+              <MenuItem key={ref} value={ref}>
+                {ref}
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Select
+            value={style}
+            onChange={(e) => setStyle(e.target.value)}
+            displayEmpty
+            fullWidth
+            label="Style"
+          >
+            <MenuItem value="">Select Style</MenuItem>
+            {STYLES.map((style) => (
+              <MenuItem key={style} value={style}>
+                {style}
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Button 
+            type="submit" 
+            variant="contained" 
+            color="primary"
+            disabled={isLoading || !description}
+            sx={{ mt: 2 }}
+          >
+            {isLoading ? 'Generating...' : `Generate ${mode === 'video' ? 'Video' : 'Image'} Prompt`}
+          </Button>
+
+          {error && (
+            <Typography color="error" sx={{ mt: 2 }}>
+              {error}
+            </Typography>
           )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
-export default GeneratePrompt;
+          {generatedPrompt && (
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                Generated Prompt:
+              </Typography>
+              <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.50' }}>
+                <Typography>{generatedPrompt}</Typography>
+              </Paper>
+            </Box>
+          )}
+        </Box>
+      </Paper>
+    </Container>
+  );
+}
