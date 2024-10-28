@@ -22,6 +22,17 @@ Welcome to MEDUSA.IO - An innovative AI-powered creative suite that combines the
   - Multiple style options for perfect results
   - Intelligent context understanding
 
+- **Responsive Design** 📱
+  - Mobile-first approach
+  - Optimized breakpoints:
+    - Mobile S: 320px
+    - Mobile M: 375px
+    - Mobile L: 414px
+    - Tablet: 567px
+    - Desktop: 768px+
+  - Fluid typography and layouts
+  - Touch-optimized interfaces
+
 ## 🛠️ Tech Stack
 
 - Next.js for the frontend
@@ -61,6 +72,18 @@ npm run dev
 python run.py
 ```
 
+## 📱 Device Support
+
+MEDUSA.IO is optimized for the following screen sizes:
+- Mobile devices (320px - 567px)
+- Tablets (568px - 1024px)
+- Desktop (1024px+)
+
+Breakpoint configuration can be found in:
+- `tailwind.config.js` for styling
+- `next.config.js` for image optimization
+- Material UI theme settings in `_app.js`
+
 ## 🎯 Usage
 
 1. Visit `http://localhost:3000`
@@ -76,6 +99,8 @@ python run.py
 - [ ] Advanced editing tools
 - [ ] Project saving and sharing
 - [ ] Community showcase
+- [ ] Enhanced mobile experience
+- [ ] Offline support (PWA)
 
 ## 🤝 Contributing
 

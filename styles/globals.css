@@ -84,3 +84,19 @@ video {
 .input-glow:focus {
   animation: randomGlow 5s infinite;
 }
+
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .landscape\:rotate-0 {
+    transform: rotate(0deg);
+    font-size: clamp(2rem, 4vw, 4rem);
+  }
+}
+
+@media screen and (max-width: 640px) {
+  h1 {
+    font-size: clamp(2rem, 8vw, 4rem);
+  }
+  p {
+    font-size: clamp(1rem, 4vw, 1.5rem);
+  }
+}

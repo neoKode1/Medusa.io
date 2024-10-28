@@ -35,9 +35,9 @@ export default function Home() {
         <div className="relative z-20 flex flex-col items-center justify-center flex-grow text-center text-white p-8">
           
           {/* Title and Subtitle */}
-          <div className="mb-8">
-            <h1 className="text-8xl font-bold">MEDSUSA.io</h1>
-            <p className="text-2xl">Powered with Luma Dream Machine along with Flux Black Forest</p>
+          <div className="mb-4 md:mb-8 transform transition-all duration-300">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold transform transition-all duration-300 rotate-0 landscape:rotate-0">MEDSUSA.io</h1>
+            <p className="text-lg sm:text-xl md:text-2xl mt-2 md:mt-4">Powered with Luma Dream Machine along with Flux Black Forest</p>
           </div>
 
           {/* Dropdown Menu for Navigation */}

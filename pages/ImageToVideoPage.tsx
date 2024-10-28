@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, ChevronDown } from 'lucide-react';
+import { RefreshCw, ChevronDown, Download } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,6 +100,33 @@ const ImageToVideoPage = () => {
     }
   };
 
+  const handleDownload = async () => {
+    if (!generatedVideo) return;
+    
+    try {
+      // Fetch the video
+      const response = await fetch(generatedVideo);
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `generated-video-${Date.now()}.mp4`; // Unique filename
+      
+      // Programmatically click the link
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      setError('Failed to download video. Please try again.');
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex items-center justify-center">
       {/* Fullscreen background video */}
@@ -152,7 +179,7 @@ const ImageToVideoPage = () => {
           )}
         </div>
 
-        <h1 className="text-7xl font-bold mb-12 text-center text-white">MEDSUSA.io</h1>
+        <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold mb-8 md:mb-12 text-center text-white transform transition-all duration-300 rotate-0 landscape:rotate-0">MEDSUSA.io</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
@@ -220,16 +247,30 @@ const ImageToVideoPage = () => {
                   <p className="mt-2 text-blue-500">{progress.toFixed(0)}% Complete</p>
                 </div>
               ) : generatedVideo ? (
-                <video controls className="w-full h-full object-cover">
-                  <source src={generatedVideo} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                  <video 
+                    controls 
+                    className="max-w-full max-h-full"
+                  >
+                    <source src={generatedVideo} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-white">
                   Your generated video will appear here
                 </div>
               )}
             </div>
+            {generatedVideo && (
+              <Button
+                onClick={handleDownload}
+                className="w-full py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-white border border-white hover-glow transition-all duration-300"
+              >
+                <Download className="w-5 h-5" />
+                Download Video
+              </Button>
+            )}
           </div>
         </div>
       </div>

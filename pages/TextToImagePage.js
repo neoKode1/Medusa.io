@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { RefreshCw, ChevronDown } from 'lucide-react';
+import { RefreshCw, ChevronDown, Download } from 'lucide-react';
 import Link from 'next/link';
 
 const TextToImagePage = () => {
@@ -88,6 +88,33 @@ const TextToImagePage = () => {
       videoRef.current.playbackRate = 0.5; // Adjust playback speed if needed
     }
   }, []);
+
+  const handleDownload = async () => {
+    if (!generatedContent) return;
+    
+    try {
+      // Fetch the image
+      const response = await fetch(generatedContent);
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `generated-image-${Date.now()}.png`; // Unique filename
+      
+      // Programmatically click the link
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      setError('Failed to download image. Please try again.');
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -187,19 +214,30 @@ const TextToImagePage = () => {
                   <RefreshCw className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-blue-500" />
                 </div>
               ) : generatedContent ? (
-                <Image
-                  src={generatedContent}
-                  alt="Generated Image"
-                  fill={true}
-                  style={{ objectFit: "cover" }}
-                  className="rounded-lg"
-                />
+                <div className="relative w-full h-full">
+                  <Image
+                    src={generatedContent}
+                    alt="Generated Image"
+                    fill={true}
+                    style={{ objectFit: "contain" }}  // Changed from "cover" to "contain"
+                    className="rounded-lg"
+                  />
+                </div>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-white text-sm sm:text-base p-4 text-center">
                   Your generated content will appear here
                 </div>
               )}
             </div>
+            {generatedContent && (
+              <button
+                onClick={handleDownload}
+                className="w-full py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-white border border-white hover-glow transition-all duration-300"
+              >
+                <Download className="w-5 h-5" />
+                Download Image
+              </button>
+            )}
           </div>
         </div>
       </div>
