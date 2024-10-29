@@ -43,11 +43,47 @@ const TextToImagePage = () => {
     setGeneratedContent(null);
 
     try {
-      const apiEndpoint = '/api/replicate';
-      const requestBody = {
+      let apiEndpoint = '/api/replicate';
+      let requestBody = {
         prompt: prompt.trim(),
         model,
       };
+
+      switch (model) {
+        case 'sd-3.5-turbo':
+          requestBody = {
+            ...requestBody,
+            cfg: 1,
+            steps: 4,
+            aspect_ratio: "1:1",
+            output_format: "webp",
+            output_quality: 90,
+            prompt_strength: 0.85,
+          };
+          break;
+        case 'sd-3.5-large':
+          requestBody = {
+            ...requestBody,
+            cfg: 3.5,
+            steps: 28,
+            aspect_ratio: "1:1",
+            output_format: "webp",
+            output_quality: 90,
+          };
+          break;
+        case 'sdxl':
+          requestBody = {
+            ...requestBody,
+            width: 1024,
+            height: 1024,
+            num_outputs: 1,
+            guidance_scale: 7.5,
+            num_inference_steps: 50,
+            refine: "expert_ensemble_refiner",
+            scheduler: "KarrasDPM",
+          };
+          break;
+      }
 
       if (uploadedImage) {
         requestBody.promptImage = uploadedImage;
@@ -168,9 +204,15 @@ const TextToImagePage = () => {
               <select 
                 value={model} 
                 onChange={(e) => setModel(e.target.value)} 
-                className="block w-full p-2 border border-gray-300 rounded-lg text-sm sm:text-base bg-transparent text-white input-glow">
-                <option value="flux-schnell" className="text-black">Flux Schnell</option>
-                <option value="stablediffusion" className="text-black">Stable Diffusion</option>
+                className="w-full p-2 rounded-lg border-2 border-white bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-white/10 transition-colors"
+              >
+                <option value="flux-schnell" className="bg-gray-800 text-white">Flux Schnell</option>
+                <option value="stablediffusion" className="bg-gray-800 text-white">Stable Diffusion</option>
+                <option value="sd-3.5-turbo" className="bg-gray-800 text-white">SD 3.5 Turbo</option>
+                <option value="sd-3.5-large" className="bg-gray-800 text-white">SD 3.5 Large</option>
+                <option value="sdxl" className="bg-gray-800 text-white">SDXL</option>
+                <option value="dalle3" className="bg-gray-800 text-white">DALL·E 3</option>
+                <option value="midjourney" className="bg-gray-800 text-white">Midjourney</option>
               </select>
             </div>
 
@@ -188,12 +230,48 @@ const TextToImagePage = () => {
 
             <div>
               <label htmlFor="image-upload" className="block text-base sm:text-lg mb-2 text-white">Upload reference image (optional):</label>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleUpload}
-                className="w-full text-sm sm:text-base text-white input-glow" 
-              />
+              <div className="flex items-center space-x-4">
+                <input id="image-upload" type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+                <button 
+                  onClick={() => document.getElementById('image-upload').click()}
+                  className="w-full bg-transparent hover:bg-white/10 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl border-2 border-white text-white hover:text-white flex items-center justify-center gap-2"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-6 w-6" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                    />
+                  </svg>
+                  Choose Image
+                </button>
+              </div>
+              {uploadedImage && (
+                <div className="mt-2 flex items-center">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center mr-2">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-5 w-5 text-green-500" 
+                      viewBox="0 0 20 20" 
+                      fill="currentColor"
+                    >
+                      <path 
+                        fillRule="evenodd" 
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                        clipRule="evenodd" 
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-green-500">Image uploaded successfully</p>
+                </div>
+              )}
             </div>
 
             <button

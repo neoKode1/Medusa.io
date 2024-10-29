@@ -1,7 +1,9 @@
 import { LumaAI } from 'lumaai';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
+    logger.log('warn', 'Method not allowed', { method: req.method });
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -10,7 +12,16 @@ export default async function handler(req, res) {
   try {
     const { prompt, promptImage, model = 'gen3a_turbo', duration = 10, ratio = '16:9' } = req.body;
 
+    logger.log('info', 'Starting LumaAI generation', {
+      prompt,
+      model,
+      duration,
+      ratio,
+      hasImage: !!promptImage
+    });
+
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+      logger.log('error', 'Invalid prompt provided', { prompt });
       throw new Error('Invalid or missing prompt.');
     }
 
@@ -23,9 +34,12 @@ export default async function handler(req, res) {
         ratio,
         image: promptImage,
       });
-      console.log('Generation created:', generation.id);
+      logger.log('info', 'Generation created', { generationId: generation.id });
     } catch (createError) {
-      console.error('Error creating generation:', createError);
+      logger.log('error', 'Error creating generation', {
+        error: createError.message,
+        stack: createError.stack
+      });
       throw new Error(`Failed to create generation: ${createError.message}`);
     }
 
@@ -36,21 +50,34 @@ export default async function handler(req, res) {
     while (!completed && retryCount < maxRetries) {
       try {
         generation = await lumaai.generations.get(generation.id);
-        console.log(`Generation status: ${generation.state}, Progress: ${generation.progressPercent || 0}%`);
+        logger.log('info', 'Generation status', {
+          state: generation.state,
+          progressPercent: generation.progressPercent || 0
+        });
 
         if (generation.state === "completed") {
           completed = true;
         } else if (generation.state === "failed") {
           throw new Error(`Generation failed: ${generation.failure_reason || 'Unknown reason'}`);
         } else {
-          console.log(`Generation in progress... State: ${generation.state}, Attempt ${retryCount + 1} of ${maxRetries}`);
+          logger.log('info', 'Generation in progress', {
+            state: generation.state,
+            attempt: retryCount + 1,
+            maxRetries: maxRetries
+          });
           await new Promise(r => setTimeout(r, 15000)); // Wait 15 seconds between checks
           retryCount++;
         }
       } catch (pollError) {
-        console.error('Error polling generation status:', pollError);
+        logger.log('error', 'Error polling generation status', {
+          error: pollError.message,
+          stack: pollError.stack
+        });
         if (pollError.message.includes('temporary') || pollError.message.includes('timeout')) {
-          console.log(`Temporary error, retrying... Attempt ${retryCount + 1} of ${maxRetries}`);
+          logger.log('info', 'Temporary error, retrying', {
+            attempt: retryCount + 1,
+            maxRetries: maxRetries
+          });
           await new Promise(r => setTimeout(r, 15000));
           retryCount++;
         } else {
@@ -68,10 +95,14 @@ export default async function handler(req, res) {
     }
 
     const videoUrl = generation.assets.video;
-    console.log('Video generation completed successfully. URL:', videoUrl);
+    logger.log('info', 'Video generation completed', { videoUrl });
     res.status(200).json({ videoUrl });
   } catch (error) {
-    console.error('Error generating video with LumaAI:', error);
+    logger.log('error', 'Error generating video with LumaAI', {
+      error: error.message,
+      stack: error.stack,
+      body: req.body
+    });
     res.status(500).json({ error: error.message });
   }
 }

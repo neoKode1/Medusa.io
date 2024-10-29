@@ -3,7 +3,24 @@ import { Box, TextField, Select, MenuItem, Button, Typography, Paper, Container 
 import Link from 'next/link';
 
 const GENRES = {
-  horror: ['The Shining', 'Get Out', 'A Nightmare on Elm Street', 'The Exorcist', 'Hereditary'],
+  horror: [
+    'The Shining', 'Get Out', 'A Nightmare on Elm Street', 'The Exorcist', 'Hereditary',
+    'A Quiet Place', 'The VVitch', 'It Follows', 'The Babadook', 'Midsommar',
+    'Us', 'Saint Maud', 'X'
+  ],
+  scifi: [
+    'Dune', 'Arrival', 'Ex Machina', 'Everything Everywhere All at Once',
+    'Blade Runner 2049', 'Interstellar', 'Mad Max: Fury Road', 'The Martian',
+    'Edge of Tomorrow', 'Annihilation'
+  ],
+  romcom: [
+    'Crazy Rich Asians', 'Palm Springs', 'The Big Sick', 'Long Shot',
+    'Ticket to Paradise', 'Set It Up', 'About Time', 'Love & Friendship',
+    "Bridget Jones's Baby", 'Always Be My Maybe', 'Someone Great',
+    "To All the Boys I've Loved Before", 'Silver Linings Playbook', 'Game Night',
+    'Crazy, Stupid, Love', 'The Lovebirds', 'Yesterday', 'Plus One',
+    'Fire Island', 'Bros'
+  ],
   comedy: ['Groundhog Day', 'Superbad', 'Bridesmaids', 'The Big Lebowski', 'Shaun of the Dead'],
   drama: ['The Godfather', 'The Shawshank Redemption', "Schindler's List", 'Forrest Gump', '12 Years a Slave'],
   suspense: ['Gone Girl', 'Inception', 'No Country for Old Men', 'Memento', 'Rear Window'],
@@ -14,12 +31,30 @@ const BOOKS = [
   'To Kill a Mockingbird', '1984', 'The Great Gatsby',
   'Harry Potter and the Philosopher\'s Stone', 'The Catcher in the Rye',
   'Pride and Prejudice', 'The Lord of the Rings', 'The Alchemist',
-  'The Da Vinci Code', 'The Hunger Games'
+  'The Da Vinci Code', 'The Hunger Games',
+  'Project Hail Mary', 'The Three-Body Problem', 'Snow Crash',
+  'Neuromancer', 'The Priory of the Orange Tree',
+  'The Way of Kings', 'The House in the Cerulean Sea',
+  'The Invisible Life of Addie LaRue', 'Mexican Gothic',
+  'The Thursday Murder Club', 'The Seven Husbands of Evelyn Hugo',
+  'The Silent Patient', 'Where the Crawdads Sing',
+  'The Only Good Indians', 'Bird Box', 'House of Leaves',
+  'Book Lovers', 'The Love Hypothesis', 'Outlander',
+  'The Book Thief', 'All the Light We Cannot See', 'Pachinko',
+  'Educated', 'Born a Crime', 'The Glass Castle',
+  'The Code Breaker', 'The Body', 'The Devil in the White City'
 ];
 
 const STYLES = [
   'Cinematic', 'Photorealistic', 'Artistic', 'Abstract',
-  'Film Noir', 'Vintage', 'Modern', 'Fantasy', 'Sci-fi'
+  'Film Noir', 'Vintage', 'Modern', 'Fantasy', 'Sci-fi',
+  'Slapstick', 'Dark Comedy', 'Satire', 'Mockumentary',
+  'Gothic', 'Cyberpunk', 'Steampunk', 'Post-Apocalyptic',
+  'High Fantasy', 'Urban Fantasy', 'Magical Realism',
+  'Neo-Noir', 'Period', 'Experimental', 'Avant-garde',
+  'Underground', 'Traditional 2D', '3D/CGI', 'Stop Motion',
+  'Anime', 'Mixed Media', 'Interactive', 'Documentary',
+  'Biographical', 'Historical Epic', 'Art House'
 ];
 
 const MODES = [
@@ -27,23 +62,78 @@ const MODES = [
   { value: 'video', label: 'Text to Video' }
 ];
 
+const MOVIES = [
+  // Horror
+  'The Shining', 'Get Out', 'A Nightmare on Elm Street', 'The Exorcist', 'Hereditary',
+  'A Quiet Place', 'The VVitch', 'It Follows', 'The Babadook', 'Midsommar',
+  'Us', 'Saint Maud', 'X',
+  
+  // Sci-fi
+  'Dune', 'Arrival', 'Ex Machina', 'Everything Everywhere All at Once',
+  'Blade Runner 2049', 'Interstellar', 'Mad Max: Fury Road', 'The Martian',
+  'Edge of Tomorrow', 'Annihilation',
+  
+  // Rom-com
+  'Crazy Rich Asians', 'Palm Springs', 'The Big Sick', 'Long Shot',
+  'Ticket to Paradise', 'Set It Up', 'About Time', 'Love & Friendship',
+  "Bridget Jones's Baby", 'Always Be My Maybe', 'Someone Great',
+  "To All the Boys I've Loved Before", 'Silver Linings Playbook', 'Game Night',
+  'Crazy, Stupid, Love', 'The Lovebirds', 'Yesterday', 'Plus One',
+  'Fire Island', 'Bros',
+  
+  // Action
+  'Die Hard', 'Mad Max: Fury Road', 'John Wick', 'The Matrix',
+  'Mission: Impossible', 'Raiders of the Lost Ark', 'Kill Bill',
+  'The Dark Knight', 'Inception', 'Black Panther',
+  'Wonder Woman', 'Top Gun: Maverick', 'The Bourne Identity',
+  'Casino Royale', 'Speed', 'Gladiator', 'The Terminator',
+  'Aliens', 'Crouching Tiger, Hidden Dragon', 'Point Break'
+];
+
+const movieGenres = [
+  "Action",
+  "Adventure",
+  "Animation",
+  "Comedy",
+  "Crime",
+  "Documentary",
+  "Drama",
+  "Fantasy",
+  "Horror",
+  "Mystery",
+  "Romance",
+  "Sci-Fi",
+  "Thriller",
+  "Western"
+];
+
 export default function GeneratePrompt() {
   const [description, setDescription] = useState('');
   const [genre, setGenre] = useState('');
-  const [reference, setReference] = useState('');
+  const [movieReference, setMovieReference] = useState('');
+  const [bookReference, setBookReference] = useState('');
   const [style, setStyle] = useState('');
   const [mode, setMode] = useState('image'); // Default to image mode
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedBook, setSelectedBook] = useState('');
 
   // Get references based on selected genre
   const getReferences = () => {
-    if (genre && GENRES[genre.toLowerCase()]) {
-      return [...GENRES[genre.toLowerCase()], ...BOOKS];
-    }
-    return BOOKS;
+    // Create sections for Movies and Books
+    const movieSection = [
+      { header: true, value: 'Movies', label: '--- Movies ---' },
+      ...MOVIES.map(movie => ({ value: movie, label: movie }))
+    ];
+    
+    const bookSection = [
+      { header: true, value: 'Books', label: '--- Books ---' },
+      ...BOOKS.map(book => ({ value: book, label: book }))
+    ];
+
+    return [...movieSection, ...bookSection];
   };
 
   const handleSubmit = async (e) => {
@@ -63,7 +153,8 @@ export default function GeneratePrompt() {
         body: JSON.stringify({
           description: prefixedDescription, // Send prefixed description
           genre,
-          reference,
+          movieReference,  // Send movie reference
+          bookReference,   // Send book reference
           style,
           mode,
         }),
@@ -291,7 +382,7 @@ export default function GeneratePrompt() {
             />
 
             {/* Style the Select components similarly */}
-            {['genre', 'reference', 'style'].map((selectField) => (
+            {['genre', 'style'].map((selectField) => (
               <Select
                 key={selectField}
                 value={eval(selectField)}
@@ -321,14 +412,70 @@ export default function GeneratePrompt() {
                     {genre.charAt(0).toUpperCase() + genre.slice(1)}
                   </MenuItem>
                 ))}
-                {selectField === 'reference' && getReferences().map((ref) => (
-                  <MenuItem key={ref} value={ref}>{ref}</MenuItem>
-                ))}
                 {selectField === 'style' && STYLES.map((style) => (
                   <MenuItem key={style} value={style}>{style}</MenuItem>
                 ))}
               </Select>
             ))}
+
+            {/* Movies Dropdown */}
+            <Select
+              value={movieReference}
+              onChange={(e) => setMovieReference(e.target.value)}
+              displayEmpty
+              fullWidth
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                '& .MuiSelect-icon': {
+                  color: 'white',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.7)',
+                },
+              }}
+            >
+              <MenuItem value="">Select Movie Reference</MenuItem>
+              {MOVIES.map((movie) => (
+                <MenuItem key={movie} value={movie}>{movie}</MenuItem>
+              ))}
+            </Select>
+
+            {/* Books Dropdown */}
+            <Select
+              value={bookReference}
+              onChange={(e) => setBookReference(e.target.value)}
+              displayEmpty
+              fullWidth
+              sx={{
+                mt: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                '& .MuiSelect-icon': {
+                  color: 'white',
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.7)',
+                },
+              }}
+            >
+              <MenuItem value="">Select Book Reference</MenuItem>
+              {BOOKS.map((book) => (
+                <MenuItem key={book} value={book}>{book}</MenuItem>
+              ))}
+            </Select>
 
             <Button 
               type="submit" 

@@ -5,6 +5,7 @@ import '../styles/globals.css';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme } from '@mui/material/styles';
+import { SessionProvider } from "next-auth/react"
 
 const theme = createTheme({
   // You can customize your theme here
@@ -19,9 +20,9 @@ const theme = createTheme({
   },
 });
 
-function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps: { session, ...pageProps } }) {
   return (
-    <>
+    <SessionProvider session={session}>
       <Head>
         <meta 
           name="viewport" 
@@ -32,7 +33,7 @@ function MyApp({ Component, pageProps }) {
         <CssBaseline />
         <Component {...pageProps} />
       </ThemeProvider>
-    </>
+    </SessionProvider>
   );
 }
 

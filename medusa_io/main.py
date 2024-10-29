@@ -25,6 +25,38 @@ if env_path.exists():
     load_dotenv(env_path)
     logger.info(f"Loaded environment variables from {env_path}")
 
+# Validate environment variables
+def validate_environment():
+    required_vars = {
+        "OPENAI_API_KEY": "OpenAI API key for text generation",
+        "GOOGLE_CLIENT_ID": "Google OAuth client ID",
+        "GOOGLE_CLIENT_SECRET": "Google OAuth client secret",
+        "NEXTAUTH_SECRET": "NextAuth secret for session encryption"
+    }
+    
+    optional_vars = {
+        "LUMAAI_API_KEY": "Luma AI API key for image generation",
+        "REPLICATE_API_TOKEN": "Replicate API token for model inference",
+        "SEARCH_API_KEY": "Google Custom Search API key",
+        "SEARCH_ENGINE_ID": "Google Custom Search Engine ID"
+    }
+    
+    missing_required = [var for var in required_vars if not os.getenv(var)]
+    missing_optional = [var for var in optional_vars if not os.getenv(var)]
+    
+    if missing_required:
+        error_msg = "Missing required environment variables:\n"
+        for var in missing_required:
+            error_msg += f"- {var}: {required_vars[var]}\n"
+        raise EnvironmentError(error_msg)
+    
+    if missing_optional:
+        logger.warning("Missing optional environment variables:")
+        for var in missing_optional:
+            logger.warning(f"- {var}: {optional_vars[var]}")
+
+validate_environment()
+
 # Create FastAPI app
 app = FastAPI(
     title="Medusa.io API",
@@ -71,5 +103,7 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=True,
-        log_level="info"
+        log_level="info",
+        reload_dirs=[str(Path(__file__).parent)],  # Only watch the medusa_io directory
+        reload_excludes=["./node_modules/*"]  # Exclude node_modules from watching
     )

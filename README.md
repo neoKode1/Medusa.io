@@ -22,25 +22,21 @@ Welcome to MEDUSA.IO - An innovative AI-powered creative suite that combines the
   - Multiple style options for perfect results
   - Intelligent context understanding
 
-- **Responsive Design** 📱
-  - Mobile-first approach
-  - Optimized breakpoints:
-    - Mobile S: 320px
-    - Mobile M: 375px
-    - Mobile L: 414px
-    - Tablet: 567px
-    - Desktop: 768px+
-  - Fluid typography and layouts
-  - Touch-optimized interfaces
+- **User Interface Improvements** 🎯
+  - Consistent menu navigation across all pages
+  - Responsive design for all devices
+  - Enhanced visual feedback
+  - Improved accessibility
+  - Transparent UI elements with backdrop blur
 
 ## 🛠️ Tech Stack
 
-- Next.js for the frontend
+- Next.js 13+ for the frontend
 - FastAPI for the backend
-- TailwindCSS for styling
-- Material UI components
+- Material UI for components
 - OpenAI for prompt enhancement
-- Multiple AI model integrations
+- LumaAI for video generation
+- Tailwind CSS for additional styling
 
 ## 🚀 Getting Started
 
@@ -72,39 +68,37 @@ npm run dev
 python run.py
 ```
 
-## 📱 Device Support
-
-MEDUSA.IO is optimized for the following screen sizes:
-- Mobile devices (320px - 567px)
-- Tablets (568px - 1024px)
-- Desktop (1024px+)
-
-Breakpoint configuration can be found in:
-- `tailwind.config.js` for styling
-- `next.config.js` for image optimization
-- Material UI theme settings in `_app.js`
-
 ## 🎯 Usage
 
 1. Visit `http://localhost:3000`
-2. Choose your generation mode (Text-to-Image or Image-to-Video)
-3. Enter your prompt or upload an image
-4. Select genre, reference, and style options
-5. Click Generate and watch the magic happen! ✨
+2. Use the menu button to navigate between features:
+   - Home
+   - Image to Video
+   - Text to Image
+   - Generate Prompt
+3. Follow the intuitive interface to create your content
+4. Enjoy the enhanced visual experience! ✨
 
-## 🌟 Features Coming Soon
+## 🌟 Recent Updates
 
-- [ ] Batch processing
-- [ ] Custom model fine-tuning
-- [ ] Advanced editing tools
+- Added consistent menu navigation across all pages
+- Improved UI transparency and backdrop blur effects
+- Enhanced visual feedback for user interactions
+- Updated styling for better accessibility
+- Improved mobile responsiveness
+
+## 🔜 Coming Soon
+
+- [ ] User authentication
 - [ ] Project saving and sharing
+- [ ] Advanced editing tools
 - [ ] Community showcase
 - [ ] Enhanced mobile experience
 - [ ] Offline support (PWA)
 
 ## 🤝 Contributing
 
-We love contributions! Please feel free to submit pull requests or open issues to improve MEDUSA.IO.
+We welcome contributions! Please feel free to submit pull requests or open issues to improve MEDUSA.IO.
 
 ## 📜 License
 
@@ -122,45 +116,9 @@ Made with 💜 by the MEDUSA.IO team
 
 Let's create something amazing together! 🚀
 
-# Medusa.io - AI Prompt Generation System
+## ⚠️ Important Notes
 
-## Setup Instructions
-
-### 1. Install Dependencies
-
-First, install the Python dependencies:
-```bash
-cd medusa_io
-pip install -r requirements.txt
-```
-
-### 2. Environment Setup
-
-1. Copy `.env.example` to `.env.local`:
-```bash
-cp .env.example .env.local
-```
-
-2. Update `.env.local` with your API keys:
-- Get a LumaAI API key from [LumaAI](https://lumalabs.ai/)
-- Get a Replicate API token from [Replicate](https://replicate.com/)
-- Get OpenAI API key from [OpenAI](https://platform.openai.com/)
-- Set up Google Custom Search API and get credentials
-
-3. Required Environment Variables:
-```
-LUMAAI_API_KEY=       # Your LumaAI API key
-REPLICATE_API_TOKEN=  # Your Replicate API token
-OPENAI_API_KEY=       # Your OpenAI API key (must start with 'sk-')
-SEARCH_API_KEY=       # Your Google Search API key
-SEARCH_ENGINE_ID=     # Your Google Custom Search Engine ID
-```
-
-⚠️ IMPORTANT: Never commit your `.env.local` file to version control!
-
-## Troubleshooting
-
-If you see a connection refused error:
-1. Ensure the FastAPI server is running on port 8000
-2. Check that your OPENAI_API_KEY is valid
-3. Verify both frontend and backend servers are running simultaneously
+- Ensure all API keys are properly set in `.env.local`
+- Never commit sensitive credentials to version control
+- The FastAPI backend must be running for full functionality
+- Check the console for any connection errors

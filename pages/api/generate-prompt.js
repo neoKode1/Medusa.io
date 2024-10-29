@@ -1,10 +1,16 @@
-// This should contain only the API endpoint logic
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+import logger from '../../utils/logger';
 
+export default async function handler(req, res) {
   try {
+    await logger.info('Starting prompt generation', {
+      userId: req.userId,
+      requestData: req.body
+    });
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ message: 'Method not allowed' });
+    }
+
     const { description, genre, reference, style } = req.body;
     
     console.log('Sending request to backend:', {
@@ -55,12 +61,20 @@ export default async function handler(req, res) {
         style
       }
     });
-  } catch (error) {
-    console.error('Error generating prompt:', error);
-    res.status(500).json({ 
-      message: error.message || 'Error generating prompt',
-      error: error.message,
-      enhanced_prompt: req.body.description // Fallback to original prompt
+
+    await logger.info('Prompt generated successfully', {
+      userId: req.userId,
+      promptId: generatedPromptId
     });
+
+    res.status(200).json({ result });
+  } catch (error) {
+    await logger.error('Error generating prompt', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.userId
+    });
+
+    res.status(500).json({ error: 'Failed to generate prompt' });
   }
 }

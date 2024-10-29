@@ -1,96 +1,66 @@
-# Ignore system files and directories
-.vscode/          # VSCode settings folder
-.idea/            # JetBrains IDEs (e.g., WebStorm, IntelliJ) settings
-*.log             # Log files
-.DS_Store         # macOS system file
-Thumbs.db         # Windows system file
+# Dependencies
+/node_modules/
+/.pnp
+.pnp.js
+venv/
 
-# Ignore Next.js build folder
-.next/            # Next.js build output folder
+# Build and Output
+/.next/
+/out/
+/build/
+/dist/
 
-# Ignore node modules and lock files
-node_modules/     # Dependencies
-package-lock.json # npm lock file (if you only want yarn.lock)
-yarn.lock         # Yarn lock file (if you only want package-lock.json)
+# Testing
+/coverage/
 
-# Ignore environment and secret files
-.env.local        # Local environment variables
-.env.development  # Development environment variables
-.env.production   # Production environment variables
-.env.test         # Testing environment variables
-
-# Ignore IDE and editor settings
-*.sublime-project # Sublime Text settings
-*.sublime-workspace
-*.swp             # Vi/Vim temporary files
-*.swo
-
-# Ignore build files from static export
-out/              # Next.js static export folder (if using static HTML export)
-
-# Ignore miscellaneous system files
-*.bak             # Backup files
-*.tmp             # Temporary files
-
-# Ignore lockfiles if not necessary
-*.lock            # Other lock files (e.g., SQLite, system-related)
-.env.local
-.next/
-node_modules/
-__pycache__/
-*.pyc
-.DS_Store
-__pycache__/
-*.pyc
-
-# Environment files
+# Environment Variables
 .env
 .env.local
 .env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.development
+.env.production
 
-# Dependencies
-node_modules/
-venv/
-__pycache__/
-*.pyc
-
-# Build outputs
-.next/
-dist/
-build/
-
-# Logs
-*.log
-medusa.log
+# Debug Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
+*.log
+medusa.log
 
-# IDE files
+# IDE and Editor Files
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
 *.swp
 *.swo
 
-# OS files
+# OS Files
 .DS_Store
 Thumbs.db
 
-# Debug files
-.pnpm-debug.log*
-
-# Local Netlify folder
-.netlify
-
-# Testing
-coverage/
-
-# Production
-/build
-
 # Misc
 *.pem
-.env*.local
+*.bak
+*.tmp
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# Netlify
+.netlify
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.pyc
+
+# Google Cloud Service Accounts
+medusaio-9112ecd33e03.json
+service-account*.json
+*.json.key

@@ -8,6 +8,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Update the interface to include all possible properties
+interface VideoRequestBody {
+  prompt: string;
+  promptImage: string | null;
+  // LumaAI properties
+  duration?: number;
+  ratio?: string;
+  // AnimateDiff properties
+  motion_module?: string;
+  guidance_scale?: number;
+  num_inference_steps?: number;
+  // AnimateDiff Vid2Vid properties
+  strength?: number;
+  // Motion Transfer properties
+  n_timesteps?: number;
+}
+
 const ImageToVideoPage = () => {
   const [prompt, setPrompt] = useState<string>('');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -42,21 +59,55 @@ const ImageToVideoPage = () => {
     setProgress(0);
   
     try {
-      const apiEndpoint = '/api/lumaai';  // Specify your API endpoint
-  
-      // Ensure the uploaded image is being passed into the request
+      let apiEndpoint = '';
+      let requestBody: VideoRequestBody = {
+        prompt,
+        promptImage: uploadedImage,
+      };
+
+      // Select API endpoint based on model
+      switch (model) {
+        case 'luma':
+          apiEndpoint = '/api/lumaai';
+          requestBody = {
+            ...requestBody,
+            duration: 10,
+            ratio: "16:9",
+          } as VideoRequestBody;
+          break;
+        case 'animate-diff':
+          apiEndpoint = '/api/animate-diff';
+          requestBody = {
+            ...requestBody,
+            motion_module: "mm_sd_v15_v2",
+            guidance_scale: 7.5,
+            num_inference_steps: 25,
+          } as VideoRequestBody;
+          break;
+        case 'animate-diff-vid2vid':
+          apiEndpoint = '/api/animate-diff-vid2vid';
+          requestBody = {
+            ...requestBody,
+            strength: 0.6,
+            guidance_scale: 7.5,
+            num_inference_steps: 25,
+          } as VideoRequestBody;
+          break;
+        case 'motion-transfer':
+          apiEndpoint = '/api/motion-transfer';
+          requestBody = {
+            ...requestBody,
+            n_timesteps: 900,
+          } as VideoRequestBody;
+          break;
+      }
+
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt,  // Uses the raw prompt from user input
-          promptImage: uploadedImage,
-          model,
-          duration: 10,
-          ratio: "16:9",
-        }),
+        body: JSON.stringify(requestBody),
       });
   
       if (!response.ok) {
@@ -64,7 +115,7 @@ const ImageToVideoPage = () => {
       }
   
       const data = await response.json();
-      const videoUrl = data.videoUrl || data.assets?.video;  // Retrieve the video URL
+      const videoUrl = data.videoUrl || data.assets?.video;
       setGeneratedVideo(videoUrl || null);
   
     } catch (error) {
@@ -192,8 +243,11 @@ const ImageToVideoPage = () => {
                 >
                   <SelectValue placeholder="Select model" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="luma">LumaAI</SelectItem>
+                <SelectContent className="bg-white text-black border border-gray-200 rounded-lg shadow-lg">
+                  <SelectItem value="luma" className="cursor-pointer hover:bg-gray-100 p-2">LumaAI</SelectItem>
+                  <SelectItem value="animate-diff" className="cursor-pointer hover:bg-gray-100 p-2">AnimateDiff</SelectItem>
+                  <SelectItem value="animate-diff-vid2vid" className="cursor-pointer hover:bg-gray-100 p-2">AnimateDiff Vid2Vid</SelectItem>
+                  <SelectItem value="motion-transfer" className="cursor-pointer hover:bg-gray-100 p-2">Diffusion Motion Transfer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -217,14 +271,46 @@ const ImageToVideoPage = () => {
                 <Button 
                   asChild 
                   variant="secondary" 
-                  className="w-full py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl border border-white text-white hover-glow"
+                  className="w-full bg-transparent hover:bg-white/10 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl border-2 border-white text-white hover:text-white hover-glow flex items-center justify-center gap-2"
                 >
-                  <label htmlFor="image-upload" className="cursor-pointer flex items-center justify-center">
-                    <span>Choose File</span>
+                  <label htmlFor="image-upload" className="cursor-pointer flex items-center justify-center w-full">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-6 w-6 mr-2" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                      />
+                    </svg>
+                    Choose Image
                   </label>
                 </Button>
               </div>
-              {uploadedImage && <p className="text-green-600 mt-2">Image uploaded</p>}
+              {uploadedImage && (
+                <div className="mt-2 flex items-center">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center mr-2">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-5 w-5 text-green-500" 
+                      viewBox="0 0 20 20" 
+                      fill="currentColor"
+                    >
+                      <path 
+                        fillRule="evenodd" 
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                        clipRule="evenodd" 
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-green-500">Image uploaded successfully</p>
+                </div>
+              )}
             </div>
 
             <Button 
