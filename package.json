@@ -2,7 +2,7 @@
   "name": "ai-powered-web-app",
   "version": "1.0.0",
   "scripts": {
-    "dev": "concurrently \"next dev\" \"node server.js\"",
+    "dev": "concurrently \"next dev\" \"python run.py\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

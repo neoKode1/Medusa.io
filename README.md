@@ -1,46 +1,8 @@
-# 🚀 MEDUSA.IO - AI-Powered Creative Suite
+# Medusa.io
 
-Welcome to MEDUSA.IO - An innovative AI-powered creative suite that combines the power of multiple AI models to generate stunning images and videos! 🎨 🎬
+## Setup Instructions
 
-## ✨ Features
-
-- **Text-to-Image Generation** 🖼️
-  - Powered by Flux Schnell and Stable Diffusion
-  - Genre-based prompt enhancement
-  - Reference-based generation from movies and books
-  - Multiple artistic style options
-
-- **Image-to-Video Transformation** 🎥
-  - Powered by Luma AI Dream Machine
-  - Seamless video generation from static images
-  - Advanced motion and animation controls
-  - High-quality output
-
-- **Smart Prompt Generation** 💡
-  - Genre-aware prompt enhancement
-  - Reference-based creativity from classic movies and literature
-  - Multiple style options for perfect results
-  - Intelligent context understanding
-
-- **User Interface Improvements** 🎯
-  - Consistent menu navigation across all pages
-  - Responsive design for all devices
-  - Enhanced visual feedback
-  - Improved accessibility
-  - Transparent UI elements with backdrop blur
-
-## 🛠️ Tech Stack
-
-- Next.js 13+ for the frontend
-- FastAPI for the backend
-- Material UI for components
-- OpenAI for prompt enhancement
-- LumaAI for video generation
-- Tailwind CSS for additional styling
-
-## 🚀 Getting Started
-
-1. Clone the repository:
+1. **Clone the repository**
 ```bash
 git clone https://github.com/yourusername/medusa-io.git
 cd medusa-io
