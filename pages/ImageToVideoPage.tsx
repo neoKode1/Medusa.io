@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { clientStorage } from '@/utils/clientStorage';
 
 // Update the interface to include all possible properties
 interface VideoRequestBody {
@@ -207,7 +208,7 @@ const ImageToVideoPage = () => {
           {showDropdown && (
             <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-20">
               <li>
-                <Link href="/" className="block px-4 py-2 bg-white text-black hover:bg-gray-200">
+                <Link href="/dashboard" className="block px-4 py-2 bg-white text-black hover:bg-gray-200">
                   Home
                 </Link>
               </li>

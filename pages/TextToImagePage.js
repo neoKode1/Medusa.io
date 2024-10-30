@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { RefreshCw, ChevronDown, Download } from 'lucide-react';
 import Link from 'next/link';
+import { clientStorage } from '@/utils/clientStorage';
 
 const TextToImagePage = () => {
   const [prompt, setPrompt] = useState('');
@@ -108,6 +109,9 @@ const TextToImagePage = () => {
         throw new Error('No image was generated. Please try again.');
       }
 
+      const content = { url: data.imageUrl, timestamp: Date.now() };
+      const storageKey = clientStorage.storeContent('image', content);
+
       setGeneratedContent(data.imageUrl);
       setProgress(100);
 
@@ -178,7 +182,7 @@ const TextToImagePage = () => {
           {showDropdown && (
             <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-20">
               <li>
-                <Link href="/" className="block px-4 py-2 hover:bg-gray-200">Home</Link>
+                <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-200">Home</Link>
               </li>
               <li>
                 <Link href="/ImageToVideoPage" className="block px-4 py-2 hover:bg-gray-200">Image to Video</Link>

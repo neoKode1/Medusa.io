@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import uuid
 import time
 from pathlib import Path
+from pydantic import BaseModel
 
 # Set up logging first, before any other operations
 logging.basicConfig(
@@ -82,8 +83,14 @@ def get_agent_team():
             detail=f"Failed to initialize AI services: {str(e)}"
         )
 
+class PromptRequest(BaseModel):
+    description: str
+    genre: str | None = None
+    reference: str | None = None
+    style: str | None = None
+
 @router.post("/generate-prompt")
-async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_agent_team)) -> Dict:
+async def generate_prompt(request: PromptRequest, agent_team: AgentTeam = Depends(get_agent_team)) -> Dict:
     """
     Generate an enhanced prompt based on web search results and influences
     """
@@ -92,11 +99,10 @@ async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_age
         logger.info(f"Request data: {request}")
         
         # Extract all fields
-        prompt = request.get('prompt') or request.get('description')
-        genre = request.get('genre', '')
-        reference = request.get('reference', '')
-        style = request.get('style', '')
-        mode = request.get('mode', 'image')
+        prompt = request.description or request.genre or request.reference or request.style
+        genre = request.genre or request.reference or request.style
+        reference = request.reference or request.style
+        style = request.style
         
         if not prompt:
             logger.error("No prompt or description found in request")
@@ -118,7 +124,7 @@ async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_age
         logger.info("=== Processing Request ===")
         result = agent_team.process_prompt(
             prompt=prompt,
-            mode=mode,
+            mode='image',
             influences={
                 'genre': genre,
                 'reference': reference,
@@ -145,10 +151,10 @@ async def generate_prompt(request: Dict, agent_team: AgentTeam = Depends(get_age
         logger.error(traceback.format_exc())
         
         return {
-            "original_prompt": prompt if 'prompt' in locals() else request.get('description', ''),
-            "enhanced_prompt": f"@prompt_dir.txt {prompt if 'prompt' in locals() else request.get('description', '')}",
+            "original_prompt": prompt if 'prompt' in locals() else request.description,
+            "enhanced_prompt": f"@prompt_dir.txt {prompt if 'prompt' in locals() else request.description}",
             "reference_images": [],
-            "mode": mode,
+            "mode": 'image',
             "agent_used": "",
             "influences": {
                 'genre': genre,

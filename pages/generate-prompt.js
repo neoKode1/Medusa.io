@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Box, TextField, Select, MenuItem, Button, Typography, Paper, Container } from '@mui/material';
 import Link from 'next/link';
+import { clientStorage } from '@/utils/clientStorage';
 
 const GENRES = {
   horror: [
@@ -264,7 +265,7 @@ export default function GeneratePrompt() {
             }}>
               <Box component="ul" sx={{ p: 0, m: 0, listStyle: 'none' }}>
                 <Box component="li">
-                  <Link href="/" style={{ textDecoration: 'none' }}>
+                  <Link href="/dashboard" style={{ textDecoration: 'none' }}>
                     <Box sx={{ px: 4, py: 2, color: 'black', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)' } }}>
                       Home
                     </Box>

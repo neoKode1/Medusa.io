@@ -63,7 +63,10 @@ __pycache__/
 .Python
 *.pyc
 
+# ... existing code ...
+
 # Google Cloud Service Accounts
-medusaio-9112ecd33e03.json
+medusaio-*.json
 service-account*.json
 *.json.key
+medusaio-39562aa9ac59.json
