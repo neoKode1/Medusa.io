@@ -1,9 +1,9 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 export default function Navbar() {
   return (
-    <nav className="bg-gray-800 text-white py-4">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="bg-gray-800 py-4 text-white">
+      <div className="container mx-auto flex items-center justify-between">
         <div className="text-lg font-bold">AI-Powered Web App</div>
         <div>
           <Link href="/" className="px-4">

@@ -4,7 +4,14 @@ const path = require('path');
 // Function to start the FastAPI server
 function startFastAPIServer() {
   const pythonPath = path.join(process.cwd(), 'venv', 'Scripts', 'python');
-  const serverProcess = spawn(pythonPath, ['-m', 'uvicorn', 'medusa_io.main:app', '--reload', '--port', '8000']);
+  const serverProcess = spawn(pythonPath, [
+    '-m',
+    'uvicorn',
+    'medusa_io.main:app',
+    '--reload',
+    '--port',
+    '8000',
+  ]);
 
   serverProcess.stdout.on('data', (data) => {
     console.log(`FastAPI: ${data}`);

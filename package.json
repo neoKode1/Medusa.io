@@ -10,7 +10,9 @@
     "clean-build": "rm -rf .next && next build",
     "check-env": "node scripts/check-env.js",
     "predev": "npm run setup && npm run check-env",
-    "setup": "node scripts/setup-env.js"
+    "setup": "node scripts/setup-env.js",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,css,md,json}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,css,md,json}\""
   },
   "keywords": [],
   "author": "",
@@ -41,27 +43,34 @@
     "form-data": "^4.0.1",
     "lucide-react": "^0.358.0",
     "lumaai": "^1.1.0",
-    "next": "^14.1.0",
-    "next-auth": "^4.24.10",
+    "next": "^13.4.19",
+    "next-auth": "^4.22.1",
     "node-fetch": "^3.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "replicate": "^0.25.2",
     "sharp": "^0.33.2",
     "tailwind-merge": "^2.2.1",
+    "tailwindcss-animate": "^1.0.7",
     "winston": "^3.15.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^20.11.30",
-    "@types/react": "^18.2.67",
-    "@types/react-dom": "^18.2.22",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.10",
+    "@typescript-eslint/parser": "^5.59.10",
     "autoprefixer": "^10.4.20",
-    "eslint": "^8.57.0",
+    "eslint": "^8.45.0",
     "eslint-config-next": "^14.1.0",
-    "eslint-plugin-tailwindcss": "^3.17.5",
+    "eslint-plugin-tailwindcss": "^3.17.2",
     "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
     "tailwindcss": "^3.4.14",
-    "typescript": "^5.4.2"
+    "typescript": "^4.9.5"
   }
 }

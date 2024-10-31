@@ -26,7 +26,7 @@ export default function Chat() {
       <Typography variant="h6" gutterBottom>
         Chat Assistant
       </Typography>
-      
+
       <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2 }}>
         {messages.map((msg, index) => (
           <Box
@@ -60,4 +60,3 @@ export default function Chat() {
     </Paper>
   );
 }
-

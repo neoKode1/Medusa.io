@@ -1,6 +1,43 @@
-# Medusa.io
+# MEDSUSA.io
 
-## Setup Instructions
+MEDSUSA.io is an advanced AI-powered platform for generating and manipulating visual content, combining multiple AI models for text-to-image, image-to-video, and prompt generation capabilities.
+
+## 🚀 Features
+
+- **Text to Image Generation**
+  - Multiple model support (Stable Diffusion, DALL·E 3, Midjourney, etc.)
+  - Reference image upload
+  - Style and genre customization
+  - High-resolution output
+
+- **Image to Video Creation**
+  - LumaAI integration
+  - AnimateDiff support
+  - Motion transfer capabilities
+  - Custom duration and ratio settings
+
+- **AI Prompt Generation**
+  - Genre-specific suggestions
+  - Movie and book reference integration
+  - Style customization
+  - Mode-specific prompts (image/video)
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: FastAPI, Python
+- **AI Services**: OpenAI, LumaAI, Replicate
+- **Authentication**: NextAuth.js
+- **Storage**: Local storage (cloud storage coming soon)
+
+## 📋 Prerequisites
+
+- Node.js 18+
+- Python 3.10+
+- npm or yarn
+- Git
+
+## 🔧 Installation
 
 1. **Clone the repository**
 ```bash
@@ -8,79 +45,92 @@ git clone https://github.com/yourusername/medusa-io.git
 cd medusa-io
 ```
 
-2. Install dependencies:
+2. **Install dependencies**
 ```bash
-npm install  # Frontend dependencies
-pip install -r requirements.txt  # Backend dependencies
+# Frontend dependencies
+npm install
+
+# Backend dependencies
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-3. Set up your environment variables in `.env.local`:
+3. **Environment Setup**
+Create a `.env.local` file in the root directory:
 ```env
+# API Keys
 OPENAI_API_KEY=your_key_here
 LUMAAI_API_KEY=your_key_here
 REPLICATE_API_TOKEN=your_token_here
+
+# Authentication
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_secret
+
+# Optional Configuration
+NODE_ENV=development
+NEXT_PUBLIC_BASE_PATH=/Medusa.io
 ```
 
-4. Run the development servers:
+4. **Start Development Servers**
 ```bash
-# Frontend
+# Start both frontend and backend
 npm run dev
 
-# Backend
+# Or start separately
+npm run dev:frontend
 python run.py
 ```
 
 ## 🎯 Usage
 
 1. Visit `http://localhost:3000`
-2. Use the menu button to navigate between features:
-   - Home
-   - Image to Video
+2. Sign in with your Google account
+3. Navigate through the menu:
+   - Dashboard
    - Text to Image
+   - Image to Video
    - Generate Prompt
-3. Follow the intuitive interface to create your content
-4. Enjoy the enhanced visual experience! ✨
+4. Follow the intuitive interface for each feature
 
-## 🌟 Recent Updates
+## 🔜 Roadmap
 
-- Added consistent menu navigation across all pages
-- Improved UI transparency and backdrop blur effects
-- Enhanced visual feedback for user interactions
-- Updated styling for better accessibility
-- Improved mobile responsiveness
-
-## 🔜 Coming Soon
-
-- [ ] User authentication
-- [ ] Project saving and sharing
-- [ ] Advanced editing tools
-- [ ] Community showcase
-- [ ] Enhanced mobile experience
-- [ ] Offline support (PWA)
+- [ ] User Authentication & Profiles
+- [ ] Cloud Storage Integration
+- [ ] History & Favorites
+- [ ] Batch Processing
+- [ ] Advanced Editing Tools
+- [ ] API Documentation
+- [ ] Mobile App
 
 ## 🤝 Contributing
 
-We welcome contributions! Please feel free to submit pull requests or open issues to improve MEDUSA.IO.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📜 License
+## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Thanks to the amazing AI model providers
-- Inspired by classic literature and cinema
-- Built with love for the creative community
+- OpenAI for their powerful AI models
+- LumaAI for video generation capabilities
+- Replicate for model hosting
+- The open-source community
+
+## 📧 Contact
+
+- GitHub: [@yourusername](https://github.com/yourusername)
+- Twitter: [@io2Medusa](https://twitter.com/io2Medusa)
+- Website: [medusa.io](https://medusa.io)
 
 ---
 
-Made with 💜 by the MEDUSA.IO team
-
-Let's create something amazing together! 🚀
-
-## ⚠️ Important Notes
-
-- Ensure all API keys are properly set in `.env.local`
-- Never commit sensitive credentials to version control
-- The FastAPI backend must be running for full functionality
-- Check the console for any connection errors
+Made with 💜 by the MEDSUSA.io team

@@ -11,13 +11,10 @@ const generateSecret = () => crypto.randomBytes(32).toString('base64');
 try {
   if (!fs.existsSync(envLocal)) {
     let envContent = fs.readFileSync(envExample, 'utf8');
-    
+
     // Replace NEXTAUTH_SECRET with a generated value
-    envContent = envContent.replace(
-      'NEXTAUTH_SECRET=',
-      `NEXTAUTH_SECRET=${generateSecret()}`
-    );
-    
+    envContent = envContent.replace('NEXTAUTH_SECRET=', `NEXTAUTH_SECRET=${generateSecret()}`);
+
     fs.writeFileSync(envLocal, envContent);
     console.log('Created .env.local file. Please update it with your API keys.');
   } else {
@@ -26,4 +23,4 @@ try {
 } catch (err) {
   console.error('Error setting up environment:', err);
   process.exit(1);
-} 
+}

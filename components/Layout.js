@@ -1,14 +1,12 @@
-import Navbar from './Navbar'
+import Navbar from './Navbar';
 import Link from 'next/link';
 
 export default function Layout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main className="flex-grow">
-        {children}
-      </main>
-      <footer className="bg-gray-800 text-white py-4">
+      <main className="grow">{children}</main>
+      <footer className="bg-gray-800 py-4 text-white">
         <div className="container mx-auto text-center">
           <Link href="/about">
             <a>About</a>
@@ -17,5 +15,5 @@ export default function Layout({ children }) {
         </div>
       </footer>
     </div>
-  )
+  );
 }

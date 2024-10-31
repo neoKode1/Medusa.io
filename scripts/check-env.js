@@ -9,7 +9,7 @@ function checkEnvironment() {
   if (!fs.existsSync(envLocal)) {
     console.error('\x1b[31m%s\x1b[0m', 'Error: .env.local file not found!');
     console.log('\x1b[33m%s\x1b[0m', 'Creating .env.local from .env.example...');
-    
+
     try {
       fs.copyFileSync(envExample, envLocal);
       console.log('\x1b[32m%s\x1b[0m', '.env.local created successfully!');
@@ -23,21 +23,18 @@ function checkEnvironment() {
   // Read and validate environment variables
   try {
     const envContent = fs.readFileSync(envLocal, 'utf8');
-    const requiredVars = [
-      'OPENAI_API_KEY',
-      'LUMAAI_API_KEY',
-      'REPLICATE_API_TOKEN'
-    ];
+    const requiredVars = ['OPENAI_API_KEY', 'LUMAAI_API_KEY', 'REPLICATE_API_TOKEN'];
 
-    const missingVars = requiredVars.filter(varName => 
-      !envContent.includes(`${varName}=`) || 
-      envContent.includes(`${varName}=your_`) ||
-      envContent.includes(`${varName}=`)
+    const missingVars = requiredVars.filter(
+      (varName) =>
+        !envContent.includes(`${varName}=`) ||
+        envContent.includes(`${varName}=your_`) ||
+        envContent.includes(`${varName}=`)
     );
 
     if (missingVars.length > 0) {
       console.warn('\x1b[33m%s\x1b[0m', 'Warning: Missing or invalid environment variables:');
-      missingVars.forEach(varName => {
+      missingVars.forEach((varName) => {
         console.log(`- ${varName}`);
       });
       console.log('\x1b[33m%s\x1b[0m', 'Please update these in your .env.local file.');

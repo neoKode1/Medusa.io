@@ -11,7 +11,8 @@ body {
   overflow-x: hidden;
 }
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -35,7 +36,8 @@ video {
 }
 
 /* Image Styling */
-video, img {
+video,
+img {
   max-width: 100%;
   height: auto;
 }
@@ -64,16 +66,28 @@ video {
 /* Add these classes to your globals.css */
 @keyframes randomGlow {
   0% {
-    box-shadow: 0 0 5px #4B0082, 0 0 10px #4B0082, 0 0 15px #4B0082;  /* Indigo */
+    box-shadow:
+      0 0 5px #4b0082,
+      0 0 10px #4b0082,
+      0 0 15px #4b0082; /* Indigo */
   }
   33% {
-    box-shadow: 0 0 5px #3F00FF, 0 0 10px #3F00FF, 0 0 15px #3F00FF;  /* Brighter Indigo */
+    box-shadow:
+      0 0 5px #3f00ff,
+      0 0 10px #3f00ff,
+      0 0 15px #3f00ff; /* Brighter Indigo */
   }
   66% {
-    box-shadow: 0 0 5px #2E0854, 0 0 10px #2E0854, 0 0 15px #2E0854;  /* Darker Indigo */
+    box-shadow:
+      0 0 5px #2e0854,
+      0 0 10px #2e0854,
+      0 0 15px #2e0854; /* Darker Indigo */
   }
   100% {
-    box-shadow: 0 0 5px #4B0082, 0 0 10px #4B0082, 0 0 15px #4B0082;  /* Back to Indigo */
+    box-shadow:
+      0 0 5px #4b0082,
+      0 0 10px #4b0082,
+      0 0 15px #4b0082; /* Back to Indigo */
   }
 }
 

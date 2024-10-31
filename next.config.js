@@ -12,12 +12,12 @@ const nextConfig = {
       },
     ],
     deviceSizes: [
-      400,  // Current mobile view
-      320,  // Smaller phones
-      375,  // Standard iPhone
-      414,  // Larger phones
-      567,  // Current height
-      768,  // Tablets
+      400, // Current mobile view
+      320, // Smaller phones
+      375, // Standard iPhone
+      414, // Larger phones
+      567, // Current height
+      768, // Tablets
     ],
   },
 };
