@@ -1,25 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    LUMAAI_API_KEY: process.env.LUMAAI_API_KEY,
-  },
-  images: {
-    remotePatterns: [
+  async redirects() {
+    return [
       {
-        // Add your remote pattern configuration here
-        protocol: 'https',
-        hostname: '**',
+        source: '/ImageToVideoPage',
+        destination: '/image-to-video',
+        permanent: true,
       },
-    ],
-    deviceSizes: [
-      400, // Current mobile view
-      320, // Smaller phones
-      375, // Standard iPhone
-      414, // Larger phones
-      567, // Current height
-      768, // Tablets
-    ],
+    ]
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig 

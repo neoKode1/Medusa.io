@@ -1,6 +1,42 @@
 # MEDSUSA.io
 
-MEDSUSA.io is an advanced AI-powered platform for generating and manipulating visual content, combining multiple AI models for text-to-image, image-to-video, and prompt generation capabilities.
+## Project Structure
+```
+medusa-io/
+├── frontend/                # Next.js frontend application
+│   ├── components/         # React components
+│   ├── lib/               # Utility functions and shared code
+│   ├── pages/             # Next.js pages
+│   ├── public/            # Static files
+│   ├── styles/            # CSS and style files
+│   └── package.json       # Frontend dependencies
+│
+├── backend/               # FastAPI backend application
+│   ├── app/              # Main application code
+│   │   ├── routers/     # API route handlers
+│   │   ├── models/      # Data models
+│   │   └── core/        # Core functionality
+│   ├── tests/           # Backend tests
+│   └── requirements.txt  # Python dependencies
+│
+├── .env.example          # Example environment variables
+├── .gitignore           # Git ignore rules
+├── package.json         # Root package.json for scripts
+├── README.md           # Project documentation
+└── server.js           # Development server setup
+```
+
+## Setup Instructions
+
+1. **Clone and Install Dependencies**
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/medusa-io.git
+cd medusa-io
+
+# Install all dependencies (frontend and backend)
+npm install
+```
 
 ## 🚀 Features
 
