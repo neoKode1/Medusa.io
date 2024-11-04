@@ -1,6 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 .glow {
   filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00);
   animation: flicker 4s infinite;
@@ -39,4 +36,4 @@
   .animate-orbit3 {
     animation: orbit3 24s linear infinite;
   }
-}
+} 

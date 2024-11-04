@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
+import { validateAndEnhancePrompt, PROMPT_GUIDE } from '../../constants/promptGuide';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -13,33 +14,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { description, genre, movieReference, bookReference, style, mode } = req.body;
 
-    // Construct the prompt
-    let systemPrompt = `You are a creative prompt engineer. Generate a detailed, creative prompt for ${mode === 'video' ? 'video' : 'image'} generation.`;
+    // First, use our local prompt enhancement logic
+    const localEnhancement = validateAndEnhancePrompt(
+      description,
+      mode === 'video',
+      {
+        style,
+        genre,
+        movieRef: movieReference,
+        bookRef: bookReference
+      }
+    );
+
+    if (!localEnhancement.isValid) {
+      return res.status(400).json({ error: localEnhancement.errors });
+    }
+
+    // Then, use GPT to further refine the prompt
+    const systemPrompt = `${PROMPT_GUIDE}\n\nYou are a prompt enhancement specialist. Optimize the following AI ${mode} generation prompt while maintaining its core elements and staying within length limits.`;
     
-    let userPrompt = `Base description: ${description}\n`;
-    if (genre) userPrompt += `Genre: ${genre}\n`;
-    if (style) userPrompt += `Style: ${style}\n`;
-    if (movieReference) userPrompt += `Similar to the movie: ${movieReference}\n`;
-    if (bookReference) userPrompt += `Inspired by the book: ${bookReference}\n`;
+    const userPrompt = `Enhanced prompt: ${localEnhancement.enhancedPrompt}\n\nTechnical choices: ${localEnhancement.breakdown?.technicalChoices.join(', ')}\nCore elements: ${localEnhancement.breakdown?.coreElements.join(', ')}`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",  // or "gpt-3.5-turbo" if you prefer
+      model: "gpt-4",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      max_tokens: 300,
+      max_tokens: mode === 'video' ? 150 : 300,
       temperature: 0.7,
     });
 
-    const enhanced_prompt = completion.choices[0].message.content;
+    const final_prompt = completion.choices[0].message.content;
 
-    res.status(200).json({ enhanced_prompt });
+    // Validate the final prompt length
+    const maxLength = mode === 'video' ? 200 : 300;
+    const finalPrompt = final_prompt.length > maxLength 
+      ? final_prompt.substring(0, maxLength) 
+      : final_prompt;
+
+    res.status(200).json({ 
+      enhanced_prompt: finalPrompt,
+      breakdown: localEnhancement.breakdown
+    });
+
   } catch (error) {
     console.error('Error in generate-prompt:', error);
     
     if (error instanceof Error) {
-      // Check if it's a quota exceeded error
       if (error.message.includes('quota')) {
         return res.status(429).json({ error: 'QUOTA_EXCEEDED' });
       }

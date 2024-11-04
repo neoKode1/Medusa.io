@@ -1,172 +1,186 @@
-# MEDSUSA.io
+# Medusa.io - Advanced AI Image & Video Generation Platform
 
-## Project Structure
-```
-medusa-io/
-├── frontend/                # Next.js frontend application
-│   ├── components/         # React components
-│   ├── lib/               # Utility functions and shared code
-│   ├── pages/             # Next.js pages
-│   ├── public/            # Static files
-│   ├── styles/            # CSS and style files
-│   └── package.json       # Frontend dependencies
-│
-├── backend/               # FastAPI backend application
-│   ├── app/              # Main application code
-│   │   ├── routers/     # API route handlers
-│   │   ├── models/      # Data models
-│   │   └── core/        # Core functionality
-│   ├── tests/           # Backend tests
-│   └── requirements.txt  # Python dependencies
-│
-├── .env.example          # Example environment variables
-├── .gitignore           # Git ignore rules
-├── package.json         # Root package.json for scripts
-├── README.md           # Project documentation
-└── server.js           # Development server setup
-```
+Medusa.io is a cutting-edge web application that harnesses state-of-the-art AI models for generating high-quality images and videos from text prompts. Built with Next.js and TypeScript, it offers a seamless interface for content creation with support for multiple AI models.
 
-## Setup Instructions
+## Key Features
 
-1. **Clone and Install Dependencies**
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/medusa-io.git
-cd medusa-io
+- **Prometheus Prompt Engine**
+  - Advanced prompt enhancement algorithm
+  - Dynamic keyword weighting
+  - Style-specific optimizations
+  - Contextual prompt refinement
+  - Automatic quality boosting
+  - Genre-specific enhancements
+  - Artistic style integration
+  - Technical parameter optimization
 
-# Install all dependencies (frontend and backend)
-npm install
-```
+- **Multi-Model Integration**
+  - Flux Models (Dev, Pro, 1.1 Pro)
+  - Stable Diffusion XL & 3.5
+  - Recraft V3
+  - Luma AI (Video Generation)
 
-## 🚀 Features
+- **Advanced Generation Controls**
+  - Customizable image dimensions (128-1024px)
+  - Adjustable generation steps (1-50)
+  - Guidance scale control (1-20)
+  - Reference image support
+  - PNG output format with quality settings
+  - Safety tolerance controls
 
-- **Text to Image Generation**
-  - Multiple model support (Stable Diffusion, DALL·E 3, Midjourney, etc.)
-  - Reference image upload
-  - Style and genre customization
-  - High-resolution output
+- **Smart Prompt System**
+  - Genre-based prompt generation
+  - Style presets (25+ options)
+  - Movie & book reference integration
+  - Cinematic quality enhancement
 
-- **Image to Video Creation**
-  - LumaAI integration
-  - AnimateDiff support
-  - Motion transfer capabilities
-  - Custom duration and ratio settings
+## Prometheus Prompt Engine
 
-- **AI Prompt Generation**
-  - Genre-specific suggestions
-  - Movie and book reference integration
-  - Style customization
-  - Mode-specific prompts (image/video)
+The Prometheus Prompt Engine is our advanced prompt enhancement system that transforms basic prompts into highly optimized instructions for AI models.
 
-## 🛠️ Tech Stack
+### Features
+- **Quality Enhancement**: Automatically adds quality-boosting parameters
+- **Style Integration**: Seamlessly incorporates artistic styles
+- **Technical Optimization**: Adjusts technical parameters for optimal results
+- **Contextual Refinement**: Enhances prompts based on selected genre and style
 
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Backend**: FastAPI, Python
-- **AI Services**: OpenAI, LumaAI, Replicate
-- **Authentication**: NextAuth.js
-- **Storage**: Local storage (cloud storage coming soon)
+### Example Usage
+```typescript
+// Basic prompt
+"a fairy in the forest"
 
-## 📋 Prerequisites
-
-- Node.js 18+
-- Python 3.10+
-- npm or yarn
-- Git
-
-## 🔧 Installation
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/medusa-io.git
-cd medusa-io
+// Prometheus-enhanced prompt
+"masterfully crafted fairy in an enchanted forest, ethereal atmosphere, 
+rim lighting, intricate details, professional photography, artistic 
+composition, cinematic quality, high detail, sharp focus, 8k resolution"
 ```
 
-2. **Install dependencies**
-```bash
-# Frontend dependencies
-npm install
+## Setup Guide
 
-# Backend dependencies
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+### Prerequisites
+- Node.js 18+ 
+- npm/yarn
+- Replicate API access
+- Luma AI API access
 
-3. **Environment Setup**
-Create a `.env.local` file in the root directory:
+### Environment Configuration
+
+Create `.env.local`:
 ```env
-# API Keys
-OPENAI_API_KEY=your_key_here
-LUMAAI_API_KEY=your_key_here
-REPLICATE_API_TOKEN=your_token_here
-
-# Authentication
-GOOGLE_CLIENT_ID=your_client_id
-GOOGLE_CLIENT_SECRET=your_client_secret
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_secret
-
-# Optional Configuration
-NODE_ENV=development
-NEXT_PUBLIC_BASE_PATH=/Medusa.io
+REPLICATE_API_TOKEN=your_replicate_token
+LUMAAI_API_KEY=your_lumaai_key
 ```
 
-4. **Start Development Servers**
+### Installation Steps
+
+1. Clone the repository:
 ```bash
-# Start both frontend and backend
-npm run dev
-
-# Or start separately
-npm run dev:frontend
-python run.py
+git clone https://github.com/yourusername/medusa.io.git
+cd medusa.io
 ```
 
-## 🎯 Usage
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-1. Visit `http://localhost:3000`
-2. Sign in with your Google account
-3. Navigate through the menu:
-   - Dashboard
-   - Text to Image
-   - Image to Video
-   - Generate Prompt
-4. Follow the intuitive interface for each feature
+3. Run development server:
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-## 🔜 Roadmap
+## Project Architecture
 
-- [ ] User Authentication & Profiles
-- [ ] Cloud Storage Integration
-- [ ] History & Favorites
-- [ ] Batch Processing
-- [ ] Advanced Editing Tools
-- [ ] API Documentation
-- [ ] Mobile App
+```
+medusa.io/
+├── frontend/
+│   ├── components/
+│   │   ├── BlackHoleVisualization/
+│   │   └── [other components]
+│   ├── pages/
+│   │   ├── api/
+│   │   │   ├── predictions.ts
+│   │   │   └── lumaai.ts
+│   │   └── TextToImagePage.tsx
+│   └── constants/
+│       └── promptGuide.ts
+├── public/
+│   └── attachments/
+└── types/
+```
 
-## 🤝 Contributing
+## API Endpoints
+
+### Image Generation
+```typescript
+POST /api/predictions
+{
+  prompt: string
+  model_id: string
+  steps: number
+  width: number
+  height: number
+  guidance: number
+  scheduler?: string
+  reference_image?: string
+}
+```
+
+### Video Generation
+```typescript
+POST /api/lumaai
+{
+  prompt: string
+  keyframes?: {
+    frame0: {
+      type: "image"
+      url: string
+    }
+  }
+}
+```
+
+## Development
+
+### Running Tests
+```bash
+npm run test
+# or
+yarn test
+```
+
+### Building for Production
+```bash
+npm run build
+# or
+yarn build
+```
+
+## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/NewFeature`)
+3. Commit changes (`git commit -m 'Add NewFeature'`)
+4. Push to branch (`git push origin feature/NewFeature`)
+5. Open Pull Request
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details
 
-## 🙏 Acknowledgments
+## Support & Contact
 
-- OpenAI for their powerful AI models
-- LumaAI for video generation capabilities
-- Replicate for model hosting
-- The open-source community
+- Issues: GitHub Issues
+- Email: support@medusa.io
+- Discord: [Medusa Community](https://discord.gg/medusa)
 
-## 📧 Contact
+## Acknowledgments
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Twitter: [@io2Medusa](https://twitter.com/io2Medusa)
-- Website: [medusa.io](https://medusa.io)
-
----
-
-Made with 💜 by the MEDSUSA.io team
+- [Replicate](https://replicate.com/) - AI Model Hosting
+- [Luma AI](https://lumalabs.ai/) - Video Generation
+- [Next.js](https://nextjs.org/) - React Framework
+- [Tailwind CSS](https://tailwindcss.com/) - Styling

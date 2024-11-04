@@ -5,7 +5,13 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        'orbit1': 'orbit1 12s linear infinite',
+        'orbit2': 'orbit2 18s linear infinite', 
+        'orbit3': 'orbit3 24s linear infinite',
+      }
+    },
   },
   plugins: [],
 } 

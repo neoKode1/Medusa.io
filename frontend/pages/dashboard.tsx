@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
 
 export default function Dashboard() {
-  const [showDropdown, setShowDropdown] = useState(false);
-
   // Initialize client-side storage on mount
   useEffect(() => {
     // Clear storage on component unmount (logout)
@@ -13,94 +10,9 @@ export default function Dashboard() {
     };
   }, []);
 
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
-  };
-
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Menu Button - Adjusted z-index to stay on top */}
-      <div className="fixed top-8 left-8 z-50">
-        <button
-          onClick={toggleDropdown}
-          className="px-4 py-2 text-white rounded-lg transition-colors flex items-center border border-white hover-glow"
-        >
-          Menu
-          <ChevronDown className="ml-2" />
-        </button>
-
-        {showDropdown && (
-          <ul className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
-            <li>
-              <Link href="/dashboard" className="block px-4 py-2 text-black hover:bg-gray-200">
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link href="/image-to-video" className="block px-4 py-2 text-black hover:bg-gray-200">
-                Image to Video
-              </Link>
-            </li>
-            <li>
-              <Link href="/TextToImagePage" className="block px-4 py-2 text-black hover:bg-gray-200">
-                Text to Image
-              </Link>
-            </li>
-            <li>
-              <Link href="/generate-prompt" className="block px-4 py-2 text-black hover:bg-gray-200">
-                Generate Prompt
-              </Link>
-            </li>
-          </ul>
-        )}
-      </div>
-
-      {/* Three Sections - Adjusted heights */}
-      <Link href="/generate-prompt" className="relative h-screen w-full group cursor-pointer snap-start">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/cyberpunk girl1.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
-          <h2 className="text-5xl md:text-6xl font-bold text-white text-center group-hover:scale-110 transition-transform duration-300 mb-6">
-            Generate AI Prompts
-          </h2>
-          <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
-            Create powerful, detailed prompts for your AI generations. Enhance your prompts with references from movies, books, 
-            and various artistic styles. Perfect for both image and video generations.
-          </p>
-        </div>
-      </Link>
-
-      <Link href="/image-to-video" className="relative h-screen w-full group cursor-pointer snap-start">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/leena.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
-          <h2 className="text-5xl md:text-6xl font-bold text-white text-center group-hover:scale-110 transition-transform duration-300 mb-6">
-            Image to Video Generation
-          </h2>
-          <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
-            Transform still images into dynamic videos using advanced AI models including LumaAI, AnimateDiff, 
-            and Motion Transfer. Create stunning animations, motion effects, and video content from your images 
-            with customizable parameters and styles.
-          </p>
-        </div>
-      </Link>
-
+      {/* Text to Image Section */}
       <Link href="/TextToImagePage" className="relative h-screen w-full group cursor-pointer snap-start">
         <video
           autoPlay
@@ -109,7 +21,7 @@ export default function Dashboard() {
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
         >
-          <source src="/anniemae.mp4" type="video/mp4" />
+          <source src="/cyberpunk girl1.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
@@ -124,8 +36,54 @@ export default function Dashboard() {
         </div>
       </Link>
 
+      {/* Image to Video Section */}
+      <Link href="/TextToImagePage" className="relative h-screen w-full group cursor-pointer snap-start">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/anniemae.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
+          <h2 className="text-5xl md:text-6xl font-bold text-white text-center group-hover:scale-110 transition-transform duration-300 mb-6">
+            Image to Video Generation
+          </h2>
+          <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
+            Transform static images into dynamic videos with our cutting-edge AI technology. 
+            Perfect for creating engaging content, animations, and visual effects from your existing images.
+          </p>
+        </div>
+      </Link>
+
+      {/* Prompt Generation Section */}
+      <Link href="/TextToImagePage" className="relative h-screen w-full group cursor-pointer snap-start">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/leena.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
+          <h2 className="text-5xl md:text-6xl font-bold text-white text-center group-hover:scale-110 transition-transform duration-300 mb-6">
+            AI Prompt Generation
+          </h2>
+          <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
+            Generate powerful, context-aware prompts for your AI image and video creations. 
+            Our advanced prompt generator helps you craft the perfect descriptions for optimal results.
+          </p>
+        </div>
+      </Link>
+
       {/* Disclaimer Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/80 text-white/80 py-4 px-6 text-sm z-50">
+      <div className="fixed bottom-0 left-0 right-0 text-white/80 py-4 px-6 text-sm z-50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-center md:text-left">
             Note: Generated content is temporarily stored locally and will be cleared upon logout. 
@@ -154,6 +112,15 @@ export default function Dashboard() {
                 DeepTech AI
               </a>
             </div>
+          </div>
+
+          {/* Logout Button */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-16">
+            <Link href="/login">
+              <button className="px-8 py-3 text-white border border-white rounded-lg transition-all duration-300 hover:bg-white/10 transform hover:scale-105">
+                Log Out
+              </button>
+            </Link>
           </div>
         </div>
       </div>

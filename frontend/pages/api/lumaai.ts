@@ -1,37 +1,73 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { LumaAI } from 'lumaai';
 
-// Define the correct type for LumaAI options
-interface LumaAIOptions {
-  apiKey?: string;
-  version?: string;
-}
-
-class LumaAI {
-  private apiKey: string;
-  private version: string;
-
-  constructor(options: LumaAIOptions) {
-    this.apiKey = options.apiKey || process.env.LUMAAI_API_KEY || '';
-    this.version = options.version || 'v1.1.0';
+// Increase Next.js body size limit
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb' // Adjust this value based on your needs
+    }
   }
-  
-  // ... rest of your LumaAI implementation
+};
+
+const client = new LumaAI({
+  authToken: process.env.LUMAAI_API_KEY,
+});
+
+interface LumaAIGeneration {
+  id: string;
+  state: string;
+  failure_reason?: string;
+  assets: {
+    video?: string;
+  };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const lumaai = new LumaAI({
-      apiKey: process.env.LUMAAI_API_KEY,
-      version: 'v1.1.0'
+    const { prompt, keyframes } = req.body;
+
+    // Check payload size
+    if (JSON.stringify(req.body).length > 10 * 1024 * 1024) { // 10MB limit
+      return res.status(413).json({ error: 'Request payload too large' });
+    }
+
+    let generation: LumaAIGeneration = await client.generations.create({
+      prompt,
+      keyframes: keyframes ? JSON.parse(JSON.stringify(keyframes)) : undefined,
     });
 
-    // ... rest of your handler code
+    let completed = false;
+    let attempts = 0;
+    const maxAttempts = 30; // Prevent infinite loops
+
+    while (!completed && attempts < maxAttempts) {
+      generation = await client.generations.get(generation.id);
+
+      if (generation.state === "completed") {
+        completed = true;
+      } else if (generation.state === "failed") {
+        throw new Error(`Generation failed: ${generation.failure_reason}`);
+      } else {
+        console.log("Dreaming...");
+        await new Promise(r => setTimeout(r, 3000));
+        attempts++;
+      }
+    }
+
+    if (!completed) {
+      throw new Error('Generation timed out');
+    }
+
+    const videoUrl = generation.assets.video;
+    res.status(200).json({ videoUrl });
+    
   } catch (error) {
     console.error('LumaAI Error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate video' });
   }
 } 
