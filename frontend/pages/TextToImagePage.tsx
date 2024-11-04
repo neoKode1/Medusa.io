@@ -756,7 +756,7 @@ const TextToImagePage: React.FC = () => {
             />
             
             {generation?.assets?.video || generation?.assets?.image ? (
-              <div className="flex justify-center">
+              <div className="flex justify-center text-white">
                 <button
                   onClick={handleDownload}
                   className="flex items-center gap-2 py-2 px-4 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"

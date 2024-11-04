@@ -13,7 +13,7 @@ interface GenerationContainerProps {
 
 export function GenerationContainer({ generation, isLoading, isVideo }: GenerationContainerProps) {
   return (
-    <div className="relative min-h-[200px] w-full rounded-lg border border-border bg-muted p-4">
+    <div className="relative min-h-[200px] w-full rounded-lg border border-border bg-black/10 p-4">
       {isLoading ? (
         <div className="flex h-full w-full items-center justify-center">
           <span className="loading loading-spinner loading-lg" />
@@ -39,7 +39,7 @@ export function GenerationContainer({ generation, isLoading, isVideo }: Generati
           )}
         </div>
       ) : (
-        <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+        <div className="flex h-full w-full items-center justify-center text-white">
           Your generation will appear here
         </div>
       )}
