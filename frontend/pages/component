@@ -1,0 +1,12 @@
+<div className="generation-container">
+  {isLoading ? (
+    <LoadingSpinner />
+  ) : (
+    // Render based on generation type
+    {isVideo ? (
+      generation?.assets?.video && <video src={generation.assets.video} controls />
+    ) : (
+      generation?.assets?.image && <img src={generation.assets.image} alt="Generated content" />
+    )}
+  )}
+</div> 

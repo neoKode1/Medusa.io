@@ -5,6 +5,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import { validateAndEnhancePrompt } from '../constants/promptGuide';
+import { GenerationContainer } from '@/components/ui/generation-container';
 
 const BlackHoleVisualization = dynamic(() => import('@/components/BlackHoleVisualization'), {
   ssr: false,
@@ -163,6 +164,12 @@ const TextToImagePage: React.FC = () => {
   const [scheduler, setScheduler] = useState<string>('K_EULER_ANCESTRAL');
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [generation, setGeneration] = useState<{
+    assets: {
+      video?: string;
+      image?: string;
+    };
+  } | null>(null);
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * BACKGROUND_IMAGES.length);
@@ -314,19 +321,20 @@ const TextToImagePage: React.FC = () => {
   };
 
   const handleDownload = async () => {
-    if (!generatedContent) return;
+    const url = generation?.assets?.video || generation?.assets?.image;
+    if (!url) return;
 
     try {
-      const response = await fetch(generatedContent);
+      const response = await fetch(url);
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       a.download = `generated-${mode === 'video' ? 'video.mp4' : 'image.png'}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error('Download error:', error);
       setError('Failed to download file');
@@ -343,7 +351,15 @@ const TextToImagePage: React.FC = () => {
         response = await fetch('/api/lumaai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({ 
+            prompt,
+            keyframes: uploadedImage ? {
+              frame0: {
+                type: "image",
+                url: uploadedImage
+              }
+            } : undefined,
+          }),
         });
       } else {
         response = await fetch('/api/predictions', {
@@ -370,13 +386,11 @@ const TextToImagePage: React.FC = () => {
         throw new Error(data.error || 'Failed to generate content');
       }
 
-      if (mode === 'video') {
-        setGeneratedVideo(data.videoUrl);
-        setGeneratedContent(null);
-      } else {
-        setGeneratedContent(data.imageUrl);
-        setGeneratedVideo(null);
-      }
+      setGeneration({
+        assets: {
+          [mode === 'video' ? 'video' : 'image']: mode === 'video' ? data.videoUrl : data.imageUrl
+        }
+      });
     } catch (error) {
       console.error('Generation error:', error);
       setError(error instanceof Error ? error.message : 'An unexpected error occurred');
@@ -477,7 +491,7 @@ const TextToImagePage: React.FC = () => {
                     id="model"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {Object.entries(MODELS).map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
@@ -591,7 +605,7 @@ const TextToImagePage: React.FC = () => {
                   <select
                     value={mode}
                     onChange={(e) => setMode(e.target.value as 'image' | 'video')}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {MODES.map((modeOption) => (
                       <option key={modeOption.value} value={modeOption.value}>
@@ -616,11 +630,11 @@ const TextToImagePage: React.FC = () => {
 
                 {/* Genre Dropdown */}
                 <div>
-                  <label className="block text-lg mb-2 text-white">Genre:</label>
+                  <label className="block text-lg mb-2 text-black">Genre:</label>
                   <select
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Genre</option>
                     {Object.entries(GENRES).map(([genreKey, subGenres]) => (
@@ -641,7 +655,7 @@ const TextToImagePage: React.FC = () => {
                   <select
                     value={style}
                     onChange={(e) => setStyle(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Style</option>
                     {STYLES.map((styleOption) => (
@@ -656,7 +670,7 @@ const TextToImagePage: React.FC = () => {
                   <select
                     value={movieReference}
                     onChange={(e) => setMovieReference(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Movie Reference</option>
                     {MOVIES.map((movie) => (
@@ -671,7 +685,7 @@ const TextToImagePage: React.FC = () => {
                   <select
                     value={bookReference}
                     onChange={(e) => setBookReference(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Book Reference</option>
                     {BOOKS.map((book) => (
@@ -734,49 +748,25 @@ const TextToImagePage: React.FC = () => {
           </div>
 
           {/* Generated Content Display */}
-          {(generatedContent || generatedVideo || isProcessing) && (
-            <div className="mt-8 p-4 rounded-lg bg-black/50 border border-white/20">
-              {isProcessing ? (
-                <div className="flex items-center justify-center p-8">
-                  <RefreshCw className="w-8 h-8 animate-spin text-white" />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {mode === 'video' && generatedVideo ? (
-                    <video
-                      controls
-                      className="w-full max-w-2xl mx-auto rounded-lg"
-                      src={generatedVideo}
-                    />
-                  ) : generatedContent ? (
-                    <img
-                      src={generatedContent}
-                      alt="Generated content"
-                      className="w-full max-w-2xl mx-auto rounded-lg"
-                    />
-                  ) : null}
-                  
-                  {(generatedContent || generatedVideo) && (
-                    <div className="flex justify-center">
-                      <button
-                        onClick={handleDownload}
-                        className="flex items-center gap-2 py-2 px-4 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
-                      >
-                        <Download className="w-4 h-4" />
-                        Download
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {error && (
-                <div className="mt-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-500">
-                  {error}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="space-y-4">
+            <GenerationContainer
+              generation={generation}
+              isLoading={isProcessing}
+              isVideo={mode === 'video'}
+            />
+            
+            {generation?.assets?.video || generation?.assets?.image ? (
+              <div className="flex justify-center">
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-2 py-2 px-4 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
+                >
+                  <Download size={20} />
+                  Download {mode === 'video' ? 'Video' : 'Image'}
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

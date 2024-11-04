@@ -5,17 +5,21 @@ import { LumaAI } from 'lumaai';
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '10mb' // Adjust this value based on your needs
+      sizeLimit: '10mb'
     }
   }
 };
+
+if (!process.env.LUMAAI_API_KEY) {
+  throw new Error('LUMAAI_API_KEY is not defined in environment variables');
+}
 
 const client = new LumaAI({
   authToken: process.env.LUMAAI_API_KEY,
 });
 
 interface LumaAIGeneration {
-  id: string;
+  id: string | undefined;
   state: string;
   failure_reason?: string;
   assets: {
@@ -29,45 +33,79 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { prompt, keyframes } = req.body;
+    const { prompt, keyframes, isVideo } = req.body;
+
+    // Validate input
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
 
     // Check payload size
-    if (JSON.stringify(req.body).length > 10 * 1024 * 1024) { // 10MB limit
+    if (JSON.stringify(req.body).length > 10 * 1024 * 1024) {
       return res.status(413).json({ error: 'Request payload too large' });
     }
 
-    let generation: LumaAIGeneration = await client.generations.create({
-      prompt,
-      keyframes: keyframes ? JSON.parse(JSON.stringify(keyframes)) : undefined,
-    });
+    console.log('Starting video generation with prompt:', prompt);
+    
+    let generation: LumaAIGeneration;
+    try {
+      generation = await client.generations.create({
+        prompt,
+        type: isVideo ? 'video' : 'image',
+        ...(isVideo && keyframes ? { keyframes: JSON.parse(JSON.stringify(keyframes)) } : {}),
+      });
+      if (!generation.id) {
+        throw new Error('Generation ID is missing');
+      }
+      console.log('Generation created with ID:', generation.id);
+    } catch (error) {
+      console.error('Failed to create generation:', error);
+      throw new Error('Failed to initiate video generation');
+    }
 
     let completed = false;
     let attempts = 0;
-    const maxAttempts = 30; // Prevent infinite loops
+    const maxAttempts = 30;
+    const pollingInterval = 3000; // 3 seconds
 
     while (!completed && attempts < maxAttempts) {
-      generation = await client.generations.get(generation.id);
+      try {
+        generation = await client.generations.get(generation.id);
+        console.log(`Generation status (attempt ${attempts + 1}/${maxAttempts}):`, generation.state);
 
-      if (generation.state === "completed") {
-        completed = true;
-      } else if (generation.state === "failed") {
-        throw new Error(`Generation failed: ${generation.failure_reason}`);
-      } else {
-        console.log("Dreaming...");
-        await new Promise(r => setTimeout(r, 3000));
-        attempts++;
+        if (generation.state === "completed") {
+          completed = true;
+        } else if (generation.state === "failed") {
+          throw new Error(`Generation failed: ${generation.failure_reason || 'Unknown reason'}`);
+        } else {
+          await new Promise(r => setTimeout(r, pollingInterval));
+          attempts++;
+        }
+      } catch (error) {
+        console.error(`Polling error (attempt ${attempts + 1}):`, error);
+        throw new Error('Failed to check generation status');
       }
     }
 
     if (!completed) {
-      throw new Error('Generation timed out');
+      throw new Error(`Generation timed out after ${maxAttempts} attempts`);
     }
 
-    const videoUrl = generation.assets.video;
-    res.status(200).json({ videoUrl });
+    if (!generation.assets.video) {
+      throw new Error('No video URL in completed generation');
+    }
+
+    console.log('Video generation completed successfully');
+    res.status(200).json({ 
+      videoUrl: generation.assets.video,
+      generationId: generation.id 
+    });
     
   } catch (error) {
     console.error('LumaAI Error:', error);
-    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to generate video' });
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Failed to generate video',
+      timestamp: new Date().toISOString()
+    });
   }
 } 
