@@ -11,7 +11,7 @@ type ModelConfig = {
 };
 
 const modelConfigs: Record<string, ModelConfig> = {
-  'stability-ai/sdxl': {
+  'stability-ai/stable-diffusion-xl-base-1.0': {
     version: '39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
     input: {
       negative_prompt: "ugly, bad art, poor quality, low quality"
@@ -104,50 +104,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ...(scheduler && model_id.includes('flux') ? { scheduler } : {})
     };
 
-    const prediction = await replicate.run(
-      `${model_id}:${modelConfig.version}` as `${string}/${string}:${string}`,
-      { input }
-    );
+    const prediction = await replicate.predictions.create({
+      version: modelConfig.version,
+      input: input,
+      model: model_id,
+    });
 
-    let imageUrl = null;
-    if (prediction instanceof ReadableStream) {
-      // Create prediction with proper parameters
-      const predictionResponse = await replicate.predictions.create({
-        model: model_id,
-        version: modelConfig.version,
-        input: input
-      });
-
-      // Poll for results
-      let attempts = 0;
-      const maxAttempts = 30;
-      while (attempts < maxAttempts) {
-        const result = await replicate.predictions.get(predictionResponse.id);
-        console.log('Polling status:', result.status); // Debug log
-        
-        if (result.status === 'succeeded') {
-          imageUrl = Array.isArray(result.output) ? result.output[0] : result.output;
-          break;
-        } else if (result.status === 'failed') {
-          throw new Error(`Model prediction failed: ${result.error}`);
-        }
-
-        attempts++;
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      if (!imageUrl) {
-        throw new Error('Prediction timed out');
-      }
-    } else if (typeof prediction === 'string') {
-      imageUrl = prediction;
-    } else if (Array.isArray(prediction)) {
-      imageUrl = prediction[0];
-    } else if (prediction && typeof prediction === 'object') {
-      imageUrl = Array.isArray((prediction as { output: string | string[] }).output) 
-        ? (prediction as { output: string[] }).output[0] 
-        : (prediction as { output: string }).output;
+    let result;
+    while (!result?.output) {
+      result = await replicate.predictions.get(prediction.id);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
+    
+    const imageUrl = Array.isArray(result.output) ? result.output[0] : result.output;
 
     if (!imageUrl) {
       throw new Error('No valid image URL in response');
