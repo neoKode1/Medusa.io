@@ -6,6 +6,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+interface EnhancementOptions {
+  style?: string;
+  genre?: string;
+  movieRef?: string;
+  bookRef?: string;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -14,16 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { description, genre, movieReference, bookReference, style, mode } = req.body;
 
-    // First, use our local prompt enhancement logic
+    // Update this section to match the imported function's signature
     const localEnhancement = validateAndEnhancePrompt(
-      description,
-      mode === 'video',
-      {
-        style,
-        genre,
-        movieRef: movieReference,
-        bookRef: bookReference
-      }
+      description,                          // prompt
+      mode === 'video' ? 'luma-ai' : 'sd3', // model
+      style,                               // style (optional)
+      genre,                               // genre (optional)
+      movieReference,                      // movieRef (optional)
+      bookReference                        // bookRef (optional)
     );
 
     if (!localEnhancement.isValid) {
@@ -33,7 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Then, use GPT to further refine the prompt
     const systemPrompt = `${PROMPT_GUIDE}\n\nYou are a prompt enhancement specialist. Optimize the following AI ${mode} generation prompt while maintaining its core elements and staying within length limits.`;
     
-    const userPrompt = `Enhanced prompt: ${localEnhancement.enhancedPrompt}\n\nTechnical choices: ${localEnhancement.breakdown?.technicalChoices.join(', ')}\nCore elements: ${localEnhancement.breakdown?.coreElements.join(', ')}`;
+    const userPrompt = `Enhanced prompt: ${localEnhancement.enhancedPrompt}\n\n` +
+      (localEnhancement.breakdown ? 
+        `Technical choices: ${localEnhancement.breakdown.technicalChoices.join(', ')}\n` +
+        `Core elements: ${localEnhancement.breakdown.coreElements.join(', ')}` :
+        'No breakdown available');
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -45,9 +54,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       temperature: 0.7,
     });
 
-    const final_prompt = completion.choices[0].message.content;
+    const final_prompt = completion.choices[0]?.message?.content;
+    
+    if (!final_prompt) {
+      return res.status(500).json({ error: 'Failed to generate prompt' });
+    }
 
-    // Validate the final prompt length
+    // Now TypeScript knows final_prompt is not null
     const maxLength = mode === 'video' ? 200 : 300;
     const finalPrompt = final_prompt.length > maxLength 
       ? final_prompt.substring(0, maxLength) 

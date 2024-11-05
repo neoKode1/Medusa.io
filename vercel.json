@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd docs && bundle install && bundle exec jekyll build",
-  "outputDirectory": "docs/_site",
-  "framework": "jekyll"
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.next",
+  "framework": "nextjs"
 } 

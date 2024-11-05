@@ -6,14 +6,15 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
   userAgent: 'https://www.npmjs.com/package/create-replicate'
 })
-const model = 'black-forest-labs/flux-schnell:bf53bdb93d739c9c915091cfa5f49ca662d11273a5eb30e7a2ec1939bcf27a00'
+const model = 'prompthero/openjourney:ad59ca21177f9e217b9075e7300cf6e14f7e5b4505b87b9689dbd866e9768969'
 const input = {
-  prompt: 'black forest gateau cake spelling out the words "FLUX SCHNELL", tasty, food photography, dynamic shot',
-  go_fast: true,
+  seed: null,
+  width: 512,
+  height: 512,
+  prompt: 'mdjrny-v4 style portrait of female elf, intricate, elegant, highly detailed, digital painting, artstation, concept art, smooth, sharp focus, illustration, art by artgerm and greg rutkowski and alphonse mucha, 8k',
   num_outputs: 1,
-  aspect_ratio: '1:1',
-  output_format: 'webp',
-  output_quality: 80,
+  guidance_scale: '7',
+  num_inference_steps: 50,
 }
 
 console.log('Using model: %s', model)

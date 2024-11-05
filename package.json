@@ -13,6 +13,7 @@
     "@types/p5": "^1.7.6",
     "concurrently": "^8.2.2",
     "dat.gui": "^0.7.9",
+    "lumaai": "^1.1.0",
     "medusa-io": "file:",
     "p5": "^1.11.1"
   },

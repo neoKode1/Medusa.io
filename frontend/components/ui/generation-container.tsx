@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import React from 'react';
+import { LoadingParticles } from '../LoadingParticles';
 
 interface GenerationContainerProps {
   generation: {
-    assets: {
+    assets?: {
       video?: string;
       image?: string;
     };
@@ -11,38 +12,39 @@ interface GenerationContainerProps {
   isVideo: boolean;
 }
 
-export function GenerationContainer({ generation, isLoading, isVideo }: GenerationContainerProps) {
+export const GenerationContainer: React.FC<GenerationContainerProps> = ({
+  generation,
+  isLoading,
+  isVideo
+}) => {
+  const hasContent = generation?.assets?.video || generation?.assets?.image;
+
   return (
-    <div className="relative min-h-[200px] w-full rounded-lg border border-border bg-black/10 p-4">
-      {isLoading ? (
-        <div className="flex h-full w-full items-center justify-center">
-          <span className="loading loading-spinner loading-lg" />
-        </div>
-      ) : generation ? (
-        <div className="flex justify-center">
-          {isVideo ? (
-            generation.assets.video && (
-              <video 
-                src={generation.assets.video} 
-                controls 
-                className="max-h-[600px] rounded-lg"
-              />
-            )
-          ) : (
-            generation.assets.image && (
-              <img 
-                src={generation.assets.image} 
-                alt="Generated content"
-                className="max-h-[600px] rounded-lg"
-              />
-            )
-          )}
-        </div>
+    <div className="w-full h-full min-h-[512px] flex items-center justify-center">
+      {hasContent ? (
+        isVideo ? (
+          <video
+            src={generation.assets?.video}
+            controls
+            className="max-w-full max-h-full"
+          />
+        ) : (
+          <img
+            src={generation.assets?.image}
+            alt="Generated content"
+            className="max-w-full max-h-full"
+          />
+        )
       ) : (
-        <div className="flex h-full w-full items-center justify-center text-white">
-          Your generation will appear here
+        <div className="relative w-full h-full flex items-center justify-center">
+          
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <LoadingParticles />
+            </div>
+          )}
         </div>
       )}
     </div>
   );
-}
+};

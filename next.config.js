@@ -31,6 +31,10 @@ const nextConfig = {
     })
     config.devtool = 'source-map';
     config.externals = [...(config.externals || []), { canvas: 'canvas' }];
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      punycode: false,
+    };
     return config
   },
 }

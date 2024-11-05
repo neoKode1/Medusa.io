@@ -1,111 +1,96 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { LumaAI } from 'lumaai';
 
-// Increase Next.js body size limit
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb'
-    }
-  }
-};
-
-if (!process.env.LUMAAI_API_KEY) {
-  throw new Error('LUMAAI_API_KEY is not defined in environment variables');
-}
-
 const client = new LumaAI({
-  authToken: process.env.LUMAAI_API_KEY,
+  authToken: process.env.LUMA_API_KEY
 });
 
-interface LumaAIGeneration {
-  id: string | undefined;
-  state: string;
-  failure_reason?: string;
-  assets: {
-    video?: string;
-  };
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { prompt, keyframes, isVideo } = req.body;
+    const { prompt, keyframes, guidance_scale } = req.body;
 
-    // Validate input
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
+    // Log the incoming request
+    console.log('Received request:', {
+      hasPrompt: !!prompt,
+      hasKeyframes: !!keyframes,
+      keyframeType: keyframes?.frame0?.type,
+      imageUrlLength: keyframes?.frame0?.url?.length
+    });
+
+    // Create generation options
+    const generationOptions: any = {
+      prompt,
+      guidance_scale: guidance_scale || 7.5,
+      loop: true,
+    };
+
+    // Only add keyframes if we have a valid image URL
+    if (keyframes?.frame0?.url && keyframes.frame0.url.startsWith('data:image')) {
+      // Convert data URL to a proper URL or remove keyframes
+      console.log('Reference image provided as data URL');
+      delete generationOptions.keyframes;
+    } else if (keyframes?.frame0?.url) {
+      generationOptions.keyframes = {
+        frame0: {
+          type: "image",
+          url: keyframes.frame0.url
+        }
+      };
     }
 
-    // Check payload size
-    if (JSON.stringify(req.body).length > 10 * 1024 * 1024) {
-      return res.status(413).json({ error: 'Request payload too large' });
-    }
+    console.log('Creating generation with options:', {
+      prompt: generationOptions.prompt,
+      hasKeyframes: !!generationOptions.keyframes
+    });
 
-    console.log('Starting video generation with prompt:', prompt);
-    
-    let generation: LumaAIGeneration;
-    try {
-      generation = await client.generations.create({
-        prompt,
-        type: isVideo ? 'video' : 'image',
-        ...(isVideo && keyframes ? { keyframes: JSON.parse(JSON.stringify(keyframes)) } : {}),
-      });
-      if (!generation.id) {
-        throw new Error('Generation ID is missing');
-      }
-      console.log('Generation created with ID:', generation.id);
-    } catch (error) {
-      console.error('Failed to create generation:', error);
-      throw new Error('Failed to initiate video generation');
-    }
+    // Create the generation
+    let generation = await client.generations.create(generationOptions);
 
+    // Start polling for completion
     let completed = false;
     let attempts = 0;
     const maxAttempts = 30;
-    const pollingInterval = 3000; // 3 seconds
 
     while (!completed && attempts < maxAttempts) {
-      try {
-        generation = await client.generations.get(generation.id);
-        console.log(`Generation status (attempt ${attempts + 1}/${maxAttempts}):`, generation.state);
+      if (!generation.id) {
+        throw new Error('Generation ID is missing');
+      }
+      generation = await client.generations.get(generation.id);
 
-        if (generation.state === "completed") {
-          completed = true;
-        } else if (generation.state === "failed") {
-          throw new Error(`Generation failed: ${generation.failure_reason || 'Unknown reason'}`);
-        } else {
-          await new Promise(r => setTimeout(r, pollingInterval));
-          attempts++;
-        }
-      } catch (error) {
-        console.error(`Polling error (attempt ${attempts + 1}):`, error);
-        throw new Error('Failed to check generation status');
+      if (generation.state === "completed") {
+        completed = true;
+        break;
+      } else if (generation.state === "failed") {
+        throw new Error(`Generation failed: ${generation.failure_reason}`);
+      } else {
+        console.log(`Generation in progress... Attempt ${attempts + 1}/${maxAttempts}`);
+        await new Promise(r => setTimeout(r, 5000));
+        attempts++;
       }
     }
 
     if (!completed) {
-      throw new Error(`Generation timed out after ${maxAttempts} attempts`);
+      throw new Error('Generation timed out');
     }
 
-    if (!generation.assets.video) {
-      throw new Error('No video URL in completed generation');
-    }
-
-    console.log('Video generation completed successfully');
-    res.status(200).json({ 
-      videoUrl: generation.assets.video,
-      generationId: generation.id 
+    return res.status(200).json({
+      success: true,
+      videoId: generation.id,
+      videoUrl: generation.assets?.video || null,
+      status: generation.state || 'pending'
     });
-    
+
   } catch (error) {
     console.error('LumaAI Error:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to generate video',
-      timestamp: new Date().toISOString()
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to initiate video generation'
     });
   }
 } 

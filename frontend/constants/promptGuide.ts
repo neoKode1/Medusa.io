@@ -74,19 +74,129 @@ Examples:
 - Use appropriate aspect ratios
 - Include technical specifications when needed`;
 
+interface PromptBreakdown {
+  technicalChoices: string[];
+  coreElements: string[];
+}
+
 interface PromptValidationResult {
   isValid: boolean;
   enhancedPrompt?: string;
   errors?: string[];
+  breakdown?: PromptBreakdown;
 }
 
+// Core interfaces
+interface TemplateElement {
+  category: string;
+  required: boolean;
+  options: string[];
+  modifiers?: string[];
+}
+
+interface PromptTemplate {
+  name: string;
+  baseStructure: TemplateElement[];
+  styleModifiers: string[];
+  technicalElements: string[];
+  mood: string[];
+  composition: string[];
+}
+
+interface StyleCategory {
+  name: string;
+  elements: string[];
+  modifiers: string[];
+  technicalRequirements: string[];
+}
+
+// Template definitions
+const characterTemplates: Record<string, PromptTemplate> = {
+  animeStyle: {
+    name: 'Anime Character',
+    baseStructure: [
+      {
+        category: 'character',
+        required: true,
+        options: ['male', 'female', 'androgynous'],
+        modifiers: ['young', 'mature', 'elderly']
+      },
+      {
+        category: 'pose',
+        required: true,
+        options: ['action', 'standing', 'sitting', 'dynamic']
+      }
+    ],
+    styleModifiers: ['cel shaded', 'detailed linework', 'vibrant colors'],
+    technicalElements: ['high detail', 'sharp lines', 'dynamic lighting'],
+    mood: ['energetic', 'calm', 'intense', 'peaceful'],
+    composition: ['close-up', 'full body', 'dynamic angle']
+  },
+  // Add other templates...
+};
+
+// Style categories
+const styleCategories: Record<string, StyleCategory> = {
+  anime: {
+    name: 'Anime/Manga',
+    elements: [
+      'cel shading',
+      'dynamic poses',
+      'expressive eyes',
+      'detailed hair',
+      'action lines'
+    ],
+    modifiers: [
+      'shounen style',
+      'shoujo style',
+      'seinen style',
+      'mecha style'
+    ],
+    technicalRequirements: [
+      'clean linework',
+      'vibrant colors',
+      'sharp details'
+    ]
+  },
+  // Add other categories...
+};
+
+// Add this after the existing interfaces
+interface AspectRatioQuality {
+  width: number;
+  height: number;
+  recommendedQuality: number;
+}
+
+// Add optimal quality settings for each aspect ratio
+export const ASPECT_RATIO_QUALITIES: Record<string, AspectRatioQuality> = {
+  '1:1': { width: 1024, height: 1024, recommendedQuality: 100 },
+  '3:4': { width: 896, height: 1152, recommendedQuality: 95 },
+  '2:3': { width: 832, height: 1216, recommendedQuality: 95 },
+  '9:16': { width: 768, height: 1344, recommendedQuality: 90 },
+  '4:3': { width: 1152, height: 896, recommendedQuality: 95 },
+  '3:2': { width: 1216, height: 832, recommendedQuality: 95 },
+  '16:9': { width: 1440, height: 810, recommendedQuality: 90 },
+  '21:9': { width: 1440, height: 640, recommendedQuality: 85 },
+  '2.39:1': { width: 1440, height: 640, recommendedQuality: 85 },
+  '1.43:1': { width: 1280, height: 896, recommendedQuality: 90 },
+  'custom': { width: 1024, height: 1024, recommendedQuality: 90 }
+};
+
+// Add this helper function
+export const getOptimalQualitySettings = (aspectRatio: string): AspectRatioQuality => {
+  return ASPECT_RATIO_QUALITIES[aspectRatio] || ASPECT_RATIO_QUALITIES['custom'];
+};
+
+// Enhanced prompt validation and generation
 export const validateAndEnhancePrompt = (
   prompt: string,
   model: string,
   style?: string,
   genre?: string,
   movieRef?: string,
-  bookRef?: string
+  bookRef?: string,
+  template?: string
 ): PromptValidationResult => {
   const isLumaAI = model === 'luma-ai';
   const maxLength = isLumaAI ? 200 : 300;
@@ -98,49 +208,39 @@ export const validateAndEnhancePrompt = (
     return { isValid: false, errors };
   }
 
-  if (prompt.length > maxLength) {
-    errors.push(`Prompt exceeds maximum length of ${maxLength} characters`);
-    return { isValid: false, errors };
-  }
-
-  // Enhance prompt based on model
+  // Template application if specified
   let enhancedPrompt = prompt;
-
-  // Add style if provided
-  if (style) {
-    enhancedPrompt = `${style} style: ${enhancedPrompt}`;
+  if (template && characterTemplates[template]) {
+    const selectedTemplate = characterTemplates[template];
+    enhancedPrompt = applyTemplate(prompt, selectedTemplate);
   }
 
-  // Add genre-specific keywords
+  // Style enhancement
+  if (style && styleCategories[style]) {
+    enhancedPrompt = enhanceWithStyle(enhancedPrompt, styleCategories[style]);
+  }
+
+  // Existing enhancements
   if (genre) {
     enhancedPrompt = `${genre} themed, ${enhancedPrompt}`;
   }
 
-  // Add movie reference
   if (movieRef) {
     enhancedPrompt = `${enhancedPrompt}, inspired by ${movieRef}`;
   }
 
-  // Add book reference
   if (bookRef) {
     enhancedPrompt = `${enhancedPrompt}, in the style of ${bookRef}`;
   }
 
   // Model-specific enhancements
   if (isLumaAI) {
-    // Add motion-related keywords for video
-    if (!enhancedPrompt.toLowerCase().includes('motion') && 
-        !enhancedPrompt.toLowerCase().includes('moving')) {
-      enhancedPrompt = `${enhancedPrompt}, with fluid motion`;
-    }
+    enhancedPrompt = enhanceForVideo(enhancedPrompt);
   } else {
-    // Add quality keywords for images
-    if (!enhancedPrompt.toLowerCase().includes('quality')) {
-      enhancedPrompt = `${enhancedPrompt}, high quality, detailed`;
-    }
+    enhancedPrompt = enhanceForImage(enhancedPrompt);
   }
 
-  // Final length check after enhancements
+  // Length validation
   if (enhancedPrompt.length > maxLength) {
     errors.push(`Enhanced prompt exceeds maximum length of ${maxLength} characters`);
     return { isValid: false, errors };
@@ -148,6 +248,71 @@ export const validateAndEnhancePrompt = (
 
   return {
     isValid: true,
-    enhancedPrompt
+    enhancedPrompt,
+    breakdown: analyzePrompt(enhancedPrompt)
   };
 };
+
+// Helper functions
+function applyTemplate(prompt: string, template: PromptTemplate): string {
+  let enhanced = prompt;
+  template.styleModifiers.forEach(modifier => {
+    if (!enhanced.toLowerCase().includes(modifier.toLowerCase())) {
+      enhanced += `, ${modifier}`;
+    }
+  });
+  return enhanced;
+}
+
+function enhanceWithStyle(prompt: string, style: StyleCategory): string {
+  let enhanced = prompt;
+  // Add key style elements if not present
+  style.elements.forEach(element => {
+    if (!enhanced.toLowerCase().includes(element.toLowerCase())) {
+      enhanced += `, ${element}`;
+    }
+  });
+  return enhanced;
+}
+
+function enhanceForVideo(prompt: string): string {
+  if (!prompt.toLowerCase().includes('motion')) {
+    prompt += ', with fluid motion and dynamic camera movement';
+  }
+  return prompt;
+}
+
+function enhanceForImage(prompt: string): string {
+  if (!prompt.toLowerCase().includes('quality')) {
+    prompt += ', high quality, detailed rendering';
+  }
+  return prompt;
+}
+
+function analyzePrompt(prompt: string): PromptBreakdown {
+  return {
+    technicalChoices: extractTechnicalElements(prompt),
+    coreElements: extractCoreElements(prompt)
+  };
+}
+
+function extractTechnicalElements(prompt: string): string[] {
+  // Implementation for extracting technical elements
+  return prompt.split(',')
+    .filter(element => element.toLowerCase().includes('quality') || 
+                      element.toLowerCase().includes('detailed') ||
+                      element.toLowerCase().includes('style'));
+}
+
+function extractCoreElements(prompt: string): string[] {
+  // Implementation for extracting core elements
+  return prompt.split(',')
+    .filter(element => !element.toLowerCase().includes('quality') && 
+                      !element.toLowerCase().includes('detailed') &&
+                      !element.toLowerCase().includes('style'));
+}
+
+// Export constants and types
+export const TEMPLATES = Object.keys(characterTemplates);
+export const STYLES = Object.keys(styleCategories);
+export type { PromptTemplate, StyleCategory, TemplateElement };

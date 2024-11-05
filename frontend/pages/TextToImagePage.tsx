@@ -4,8 +4,9 @@ import { debounce } from 'lodash';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
-import { validateAndEnhancePrompt } from '../constants/promptGuide';
+import { validateAndEnhancePrompt, getOptimalQualitySettings } from '../constants/promptGuide';
 import { GenerationContainer } from '@/components/ui/generation-container';
+import { LoadingParticles } from '@/components/LoadingParticles';
 
 const BlackHoleVisualization = dynamic(() => import('@/components/BlackHoleVisualization'), {
   ssr: false,
@@ -17,16 +18,16 @@ const MODES = [
 ];
 
 const GENRES = {
-  fantasy: ['High Fantasy', 'Urban Fantasy', 'Dark Fantasy', 'Fairy Tale', 'Sword & Sorcery', 'Mythological'],
-  scifi: ['Space Opera', 'Cyberpunk', 'Post-Apocalyptic', 'Hard Sci-Fi', 'Time Travel', 'Dystopian', 'First Contact'],
-  horror: ['Gothic', 'Cosmic Horror', 'Psychological Horror', 'Body Horror', 'Folk Horror', 'Supernatural'],
-  historical: ['Medieval', 'Renaissance', 'Victorian', 'Ancient Civilizations', 'World Wars'],
-  mystery: ['Film Noir', 'Detective', 'Thriller', 'Crime Drama', 'Espionage'],
-  romance: ['Period Romance', 'Contemporary', 'Paranormal Romance', 'Romantic Comedy'],
-  western: ['Classic Western', 'Spaghetti Western', 'Modern Western', 'Weird West'],
-  adventure: ['Epic Adventure', 'Exploration', 'Lost World', 'Treasure Hunt', 'Maritime'],
-  drama: ['Period Drama', 'Social Commentary', 'Slice of Life', 'Coming of Age'],
-  comedy: ['Slapstick', 'Dark Comedy', 'Satire', 'Parody', 'Absurdist']
+  fantasy: ['High Fantasy', 'Urban Fantasy', 'Dark Fantasy', 'Fairy Tale', 'Sword & Sorcery', 'Mythological', 'Contemporary Fantasy', 'Epic Fantasy', 'Portal Fantasy'],
+  scifi: ['Space Opera', 'Cyberpunk', 'Post-Apocalyptic', 'Hard Sci-Fi', 'Time Travel', 'Dystopian', 'First Contact', 'Military Sci-Fi', 'Biopunk', 'Steampunk', 'Space Western', 'Afrofuturism'],
+  horror: ['Gothic', 'Cosmic Horror', 'Psychological Horror', 'Body Horror', 'Folk Horror', 'Supernatural', 'Slasher', 'Zombie', 'Found Footage', 'Haunted House', 'Monster', 'Survival Horror'],
+  historical: ['Medieval', 'Renaissance', 'Victorian', 'Ancient Civilizations', 'World Wars', 'Cold War', 'Ancient Rome', 'Ancient Egypt', 'Byzantine', 'Colonial', 'Industrial Revolution', 'Age of Sail'],
+  mystery: ['Film Noir', 'Detective', 'Thriller', 'Crime Drama', 'Espionage', 'Cozy Mystery', 'Hard-Boiled', 'Police Procedural', 'Heist', 'Conspiracy'],
+  romance: ['Period Romance', 'Contemporary', 'Paranormal Romance', 'Romantic Comedy', 'Gothic Romance', 'Historical Romance', 'Romantic Suspense', 'Dark Romance'],
+  western: ['Classic Western', 'Spaghetti Western', 'Modern Western', 'Weird West', 'Neo-Western', 'Space Western', 'Post-Apocalyptic Western'],
+  adventure: ['Epic Adventure', 'Exploration', 'Lost World', 'Treasure Hunt', 'Maritime', 'Survival', 'Archaeological', 'Jungle Adventure', 'Arctic Adventure', 'Desert Adventure'],
+  drama: ['Period Drama', 'Social Commentary', 'Slice of Life', 'Coming of Age', 'Family Drama', 'Political Drama', 'Medical Drama', 'Legal Drama', 'Sports Drama'],
+  comedy: ['Slapstick', 'Dark Comedy', 'Satire', 'Parody', 'Absurdist', 'Romantic Comedy', 'Screwball Comedy', 'Comedy of Manners', 'Workplace Comedy']
 };
 
 const STYLES = [
@@ -59,21 +60,22 @@ const STYLES = [
 ];
 
 const MOVIES = [
-  'Blade Runner',
-  'The Matrix',
-  'Lord of the Rings',
-  'Star Wars',
-  'Inception',
-  'Alien',
-  'The Godfather',
-  'Jurassic Park',
-  'Avatar',
-  'Interstellar',
-  'Mad Max: Fury Road',
-  'The Fifth Element',
-  'Ex Machina',
-  'Akira',
-  'Ghost in the Shell'
+  // Sci-Fi
+  'Blade Runner', 'The Matrix', 'Inception', 'Alien', 'Avatar', 'Interstellar', 'Ex Machina', 'Akira', 
+  'Ghost in the Shell', '2001: A Space Odyssey', 'Dune', 'Metropolis', 'District 9', 'Edge of Tomorrow',
+  'Arrival', 'Children of Men', 'Moon', 'Eternal Sunshine of the Spotless Mind', 'Her', 'Wall-E',
+  // Fantasy
+  'Lord of the Rings', 'Pan\'s Labyrinth', 'Princess Mononoke', 'Spirited Away', 'The Dark Crystal',
+  'Conan the Barbarian', 'The Neverending Story', 'Willow', 'Labyrinth', 'The Princess Bride',
+  // Action/Adventure
+  'Mad Max: Fury Road', 'Indiana Jones', 'Star Wars', 'Jurassic Park', 'The Fifth Element',
+  'Pirates of the Caribbean', 'The Mummy', 'John Wick', 'Kill Bill', 'Die Hard',
+  // Horror
+  'The Thing', 'Alien', 'The Shining', 'Nosferatu', 'A Nightmare on Elm Street',
+  'Hellraiser', 'The Exorcist', 'Dracula', 'The Babadook', 'Get Out',
+  // Drama
+  'The Godfather', 'Apocalypse Now', 'Blade Runner 2049', '1917', 'Lawrence of Arabia',
+  'Barry Lyndon', 'The Grand Budapest Hotel', 'In the Mood for Love', 'Drive', 'Only God Forgives'
 ];
 
 const BOOKS = [
@@ -133,6 +135,22 @@ const BACKGROUND_IMAGES = [
   '/attachments/IMG_3483.JPG',
   '/attachments/IMG_3487.JPG',
   '/attachments/IMG_3982.JPG'
+];
+
+const ASPECT_RATIOS = [
+  { label: 'Custom', value: 'custom' },
+  { label: 'Square (1:1)', value: '1:1' },
+  { label: 'Portrait (3:4)', value: '3:4' },
+  { label: 'Portrait (2:3)', value: '2:3' },
+  { label: 'Portrait (9:16)', value: '9:16' },
+  { label: 'Landscape (4:3)', value: '4:3' },
+  { label: 'Landscape (3:2)', value: '3:2' },
+  { label: 'Landscape (16:9)', value: '16:9' },
+  { label: 'Landscape (21:9)', value: '21:9' },
+  { label: 'Instagram Story (9:16)', value: '9:16' },
+  { label: 'Instagram Post (1:1)', value: '1:1' },
+  { label: 'Cinema (2.39:1)', value: '2.39:1' },
+  { label: 'IMAX (1.43:1)', value: '1.43:1' }
 ];
 
 const TextToImagePage: React.FC = () => {
@@ -300,7 +318,8 @@ const TextToImagePage: React.FC = () => {
           movieReference,
           bookReference,
           style,
-          mode
+          mode,
+          referenceImage: uploadedImage
         }),
       });
 
@@ -346,23 +365,41 @@ const TextToImagePage: React.FC = () => {
     setError(null);
     
     try {
-      let response;
-      if (mode === 'video') {
-        response = await fetch('/api/lumaai', {
+      if (model === 'luma-ai' || mode === 'video') {
+        let imageUrl = uploadedImage;
+        
+        if (imageUrl?.startsWith('data:image')) {
+          imageUrl = null;
+        }
+
+        const response = await fetch('/api/lumaai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             prompt,
-            keyframes: uploadedImage ? {
+            keyframes: imageUrl ? {
               frame0: {
                 type: "image",
-                url: uploadedImage
+                url: imageUrl
               }
             } : undefined,
+            guidance_scale: Number(guidance)
           }),
         });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to generate video');
+        }
+
+        setGeneration({
+          assets: {
+            video: data.videoUrl
+          }
+        });
       } else {
-        response = await fetch('/api/predictions', {
+        const response = await fetch('/api/predictions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -378,19 +415,20 @@ const TextToImagePage: React.FC = () => {
             reference_image: referenceImage
           }),
         });
-      }
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate content');
-      }
-
-      setGeneration({
-        assets: {
-          [mode === 'video' ? 'video' : 'image']: mode === 'video' ? data.videoUrl : data.imageUrl
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to generate content');
         }
-      });
+
+        setGeneration({
+          assets: {
+            [mode === 'video' ? 'video' : 'image']: 
+              model === 'luma-ai' || mode === 'video' ? data.videoUrl : data.imageUrl
+          }
+        });
+      }
     } catch (error) {
       console.error('Generation error:', error);
       setError(error instanceof Error ? error.message : 'An unexpected error occurred');
@@ -459,6 +497,14 @@ const TextToImagePage: React.FC = () => {
     }
   };
 
+  // Add effect to update quality settings when aspect ratio changes
+  useEffect(() => {
+    const optimalSettings = getOptimalQualitySettings(aspectRatio);
+    setWidth(optimalSettings.width);
+    setHeight(optimalSettings.height);
+    setOutputQuality(optimalSettings.recommendedQuality);
+  }, [aspectRatio]);
+
   return (
     <div className="min-h-screen relative">
       {/* Background Image */}
@@ -476,305 +522,368 @@ const TextToImagePage: React.FC = () => {
       <div className="fixed inset-0 z-0 bg-black/60" />
       
       {/* Content */}
-      <div className="relative z-10 p-4 sm:p-8 max-w-7xl mx-auto">
-        {/* Settings Modal */}
-        {showSettings && (
-          <div 
-            className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4"
-            onClick={handleClickAway}
-          >
-            <div className="bg-black border border-white p-4 sm:p-6 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label htmlFor="model" className="block text-lg mb-2 text-white">AI Model:</label>
-                  <select
-                    id="model"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {Object.entries(MODELS).map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
-                    ))}
-                  </select>
+      <div className="relative z-10 min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-7xl mx-auto p-4 sm:p-8">
+          {/* Settings Modal */}
+          {showSettings && (
+            <div 
+              className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4"
+              onClick={handleClickAway}
+            >
+              <div className="bg-black border border-white p-4 sm:p-6 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label htmlFor="model" className="block text-lg mb-2 text-white">AI Model:</label>
+                    <select
+                      id="model"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {Object.entries(MODELS).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="steps" className="block text-lg mb-2 text-white">Steps:</label>
+                    <input type="number" id="steps" value={steps} onChange={(e) => setSteps(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label htmlFor="width" className="block text-lg mb-2 text-white">Width:</label>
+                    <input type="number" id="width" value={width} onChange={(e) => setWidth(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label htmlFor="height" className="block text-lg mb-2 text-white">Height:</label>
+                    <input type="number" id="height" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label htmlFor="guidance" className="block text-lg mb-2 text-white">Guidance:</label>
+                    <input type="number" id="guidance" value={guidance} onChange={(e) => setGuidance(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label htmlFor="interval" className="block text-lg mb-2 text-white">Interval:</label>
+                    <input type="number" id="interval" value={interval} onChange={(e) => setInterval(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label htmlFor="aspectRatio" className="block text-lg mb-2 text-white">Aspect Ratio:</label>
+                    <select 
+                      id="aspectRatio" 
+                      value={aspectRatio} 
+                      onChange={(e) => setAspectRatio(e.target.value)} 
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {ASPECT_RATIOS.map((ratio) => (
+                        <option key={ratio.value} value={ratio.value}>
+                          {ratio.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="outputFormat" className="block text-lg mb-2 text-white">Output Format:</label>
+                    <select 
+                      id="outputFormat" 
+                      value="png" 
+                      disabled 
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="png">PNG</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="outputQuality" className="block text-lg mb-2 text-white">
+                      Output Quality ({getOptimalQualitySettings(aspectRatio).recommendedQuality}% recommended):
+                    </label>
+                    <input 
+                      type="number" 
+                      id="outputQuality" 
+                      value={outputQuality} 
+                      onChange={(e) => setOutputQuality(Number(e.target.value))}
+                      min="1"
+                      max="100" 
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="safetyTolerance" className="block text-lg mb-2 text-white">Safety Tolerance:</label>
+                    <input type="number" id="safetyTolerance" value={safetyTolerance} onChange={(e) => setSafetyTolerance(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div className="col-span-2">
+                    <label htmlFor="promptUpsampling" className="block text-lg mb-2 text-white">Prompt Upsampling:</label>
+                    <input type="checkbox" id="promptUpsampling" checked={promptUpsampling} onChange={(e) => setPromptUpsampling(e.target.checked)} className="mr-2" />
+                    <span className="text-white">Enable</span>
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <label className="block text-lg text-white">Reference Image:</label>
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleReferenceImageUpload}
+                        className="hidden"
+                        id="reference-image-upload"
+                      />
+                      <label
+                        htmlFor="reference-image-upload"
+                        className="cursor-pointer py-2 px-4 rounded-lg border border-white text-white hover:bg-white/10 transition-all duration-300"
+                      >
+                        Upload Image
+                      </label>
+                      {referenceImage && (
+                        <button
+                          onClick={() => setReferenceImage(null)}
+                          className="py-2 px-4 rounded-lg border border-red-500 text-red-500 hover:bg-red-500/10 transition-all duration-300"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {referenceImage && (
+                      <div className="mt-2">
+                        <img
+                          src={referenceImage}
+                          alt="Reference"
+                          className="max-w-[200px] rounded-lg border border-white/20"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="steps" className="block text-lg mb-2 text-white">Steps:</label>
-                  <input type="number" id="steps" value={steps} onChange={(e) => setSteps(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label htmlFor="width" className="block text-lg mb-2 text-white">Width:</label>
-                  <input type="number" id="width" value={width} onChange={(e) => setWidth(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label htmlFor="height" className="block text-lg mb-2 text-white">Height:</label>
-                  <input type="number" id="height" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label htmlFor="guidance" className="block text-lg mb-2 text-white">Guidance:</label>
-                  <input type="number" id="guidance" value={guidance} onChange={(e) => setGuidance(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label htmlFor="interval" className="block text-lg mb-2 text-white">Interval:</label>
-                  <input type="number" id="interval" value={interval} onChange={(e) => setInterval(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label htmlFor="aspectRatio" className="block text-lg mb-2 text-white">Aspect Ratio:</label>
-                  <select id="aspectRatio" value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="custom">Custom</option>
-                    <option value="1:1">1:1</option>
-                    <option value="16:9">16:9</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="outputFormat" className="block text-lg mb-2 text-white">Output Format:</label>
-                  <select 
-                    id="outputFormat" 
-                    value="png" 
-                    disabled 
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="png">PNG</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="outputQuality" className="block text-lg mb-2 text-white">Output Quality:</label>
-                  <input type="number" id="outputQuality" value={outputQuality} onChange={(e) => setOutputQuality(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label htmlFor="safetyTolerance" className="block text-lg mb-2 text-white">Safety Tolerance:</label>
-                  <input type="number" id="safetyTolerance" value={safetyTolerance} onChange={(e) => setSafetyTolerance(Number(e.target.value))} className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div className="col-span-2">
-                  <label htmlFor="promptUpsampling" className="block text-lg mb-2 text-white">Prompt Upsampling:</label>
-                  <input type="checkbox" id="promptUpsampling" checked={promptUpsampling} onChange={(e) => setPromptUpsampling(e.target.checked)} className="mr-2" />
-                  <span className="text-white">Enable</span>
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <label className="block text-lg text-white">Reference Image:</label>
+              </div>
+            </div>
+          )}
+
+          {/* Prompt Generator Modal */}
+          {showPromptGenerator && (
+            <div 
+              className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4"
+              onClick={handleClickAway}
+            >
+              <div 
+                className="bg-black border border-white p-4 sm:p-6 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className="text-2xl font-semibold text-white mb-4">Prompt Generator</h2>
+                
+                {/* Reference Image Upload */}
+                <div className="mb-6">
+                  <label className="block text-lg mb-2 text-white">Reference Image:</label>
                   <div className="flex items-center gap-4">
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleReferenceImageUpload}
+                      onChange={handleUpload}
                       className="hidden"
-                      id="reference-image-upload"
+                      id="prompt-reference-image"
                     />
                     <label
-                      htmlFor="reference-image-upload"
+                      htmlFor="prompt-reference-image"
                       className="cursor-pointer py-2 px-4 rounded-lg border border-white text-white hover:bg-white/10 transition-all duration-300"
                     >
-                      Upload Image
+                      Upload Reference
                     </label>
-                    {referenceImage && (
+                    {uploadedImage && (
                       <button
-                        onClick={() => setReferenceImage(null)}
+                        onClick={() => setUploadedImage(null)}
                         className="py-2 px-4 rounded-lg border border-red-500 text-red-500 hover:bg-red-500/10 transition-all duration-300"
                       >
                         Remove
                       </button>
                     )}
                   </div>
-                  {referenceImage && (
+                  {uploadedImage && (
                     <div className="mt-2">
                       <img
-                        src={referenceImage}
+                        src={uploadedImage}
                         alt="Reference"
                         className="max-w-[200px] rounded-lg border border-white/20"
                       />
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Prompt Generator Modal */}
-        {showPromptGenerator && (
-          <div 
-            className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4"
-            onClick={handleClickAway}
-          >
-            <div className="bg-black border border-white p-4 sm:p-6 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-semibold text-white mb-4">Prompt Generator</h2>
-              <div className="space-y-4">
-                {/* Mode Selection */}
-                <div>
-                  <label className="block text-lg mb-2 text-white">Mode:</label>
-                  <select
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value as 'image' | 'video')}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {MODES.map((modeOption) => (
-                      <option key={modeOption.value} value={modeOption.value}>
-                        {modeOption.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Existing prompt generator content */}
+                <div className="space-y-4">
+                  {/* Mode Selection */}
+                  <div>
+                    <label className="block text-lg mb-2 text-white">Mode:</label>
+                    <select
+                      value={mode}
+                      onChange={(e) => setMode(e.target.value as 'image' | 'video')}
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {MODES.map((modeOption) => (
+                        <option key={modeOption.value} value={modeOption.value}>
+                          {modeOption.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                {/* Description Field */}
-                <div>
-                  <label htmlFor="description" className="block text-lg mb-2 text-white">Base Description:</label>
-                  <textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={4}
-                    placeholder={`Describe your ${mode === 'video' ? 'video' : 'image'}`}
-                  />
-                </div>
+                  {/* Description Field */}
+                  <div>
+                    <label htmlFor="description" className="block text-lg mb-2 text-white">Base Description:</label>
+                    <textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={4}
+                      placeholder={`Describe your ${mode === 'video' ? 'video' : 'image'}`}
+                    />
+                  </div>
 
-                {/* Genre Dropdown */}
-                <div>
-                  <label className="block text-lg mb-2 text-black">Genre:</label>
-                  <select
-                    value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Genre</option>
-                    {Object.entries(GENRES).map(([genreKey, subGenres]) => (
-                      <optgroup key={genreKey} label={genreKey.charAt(0).toUpperCase() + genreKey.slice(1)}>
-                        {subGenres.map((subGenre) => (
-                          <option key={`${genreKey}-${subGenre}`} value={`${genreKey}-${subGenre}`}>
-                            {subGenre}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
+                  {/* Genre Dropdown */}
+                  <div>
+                    <label className="block text-lg mb-2 text-black">Genre:</label>
+                    <select
+                      value={genre}
+                      onChange={(e) => setGenre(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Genre</option>
+                      {Object.entries(GENRES).map(([genreKey, subGenres]) => (
+                        <optgroup key={genreKey} label={genreKey.charAt(0).toUpperCase() + genreKey.slice(1)}>
+                          {subGenres.map((subGenre) => (
+                            <option key={`${genreKey}-${subGenre}`} value={`${genreKey}-${subGenre}`}>
+                              {subGenre}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
 
-                {/* Style Dropdown */}
-                <div>
-                  <label className="block text-lg mb-2 text-white">Style:</label>
-                  <select
-                    value={style}
-                    onChange={(e) => setStyle(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Style</option>
-                    {STYLES.map((styleOption) => (
-                      <option key={styleOption} value={styleOption}>{styleOption}</option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Style Dropdown */}
+                  <div>
+                    <label className="block text-lg mb-2 text-white">Style:</label>
+                    <select
+                      value={style}
+                      onChange={(e) => setStyle(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Style</option>
+                      {STYLES.map((styleOption) => (
+                        <option key={styleOption} value={styleOption}>{styleOption}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                {/* Movie Reference Dropdown */}
-                <div>
-                  <label className="block text-lg mb-2 text-white">Movie Reference:</label>
-                  <select
-                    value={movieReference}
-                    onChange={(e) => setMovieReference(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Movie Reference</option>
-                    {MOVIES.map((movie) => (
-                      <option key={movie} value={movie}>{movie}</option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Movie Reference Dropdown */}
+                  <div>
+                    <label className="block text-lg mb-2 text-white">Movie Reference:</label>
+                    <select
+                      value={movieReference}
+                      onChange={(e) => setMovieReference(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Movie Reference</option>
+                      {MOVIES.map((movie) => (
+                        <option key={movie} value={movie}>{movie}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                {/* Book Reference Dropdown */}
-                <div>
-                  <label className="block text-lg mb-2 text-white">Book Reference:</label>
-                  <select
-                    value={bookReference}
-                    onChange={(e) => setBookReference(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Book Reference</option>
-                    {BOOKS.map((book) => (
-                      <option key={book} value={book}>{book}</option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Book Reference Dropdown */}
+                  <div>
+                    <label className="block text-lg mb-2 text-white">Book Reference:</label>
+                    <select
+                      value={bookReference}
+                      onChange={(e) => setBookReference(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-gray-700 bg-black text-white white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Book Reference</option>
+                      {BOOKS.map((book) => (
+                        <option key={book} value={book}>{book}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className="flex gap-4 mt-6">
-                  <button
-                    onClick={handleGeneratePrompt}
-                    disabled={!description || isProcessing}
-                    className="flex-1 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl text-white border border-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isProcessing ? 'Generating...' : 'Generate Prompt'}
-                  </button>
-                  <button
-                    onClick={() => setShowPromptGenerator(false)}
-                    className="flex-1 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl text-white border border-white hover:bg-white/10"
-                  >
-                    Close
-                  </button>
+                  <div className="flex gap-4 mt-6">
+                    <button
+                      onClick={handleGeneratePrompt}
+                      disabled={!description || isProcessing}
+                      className="flex-1 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl text-white border border-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isProcessing ? 'Generating...' : 'Generate Prompt'}
+                    </button>
+                    <button
+                      onClick={() => setShowPromptGenerator(false)}
+                      className="flex-1 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl text-white border border-white hover:bg-white/10"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Main content area */}
-        <div className="space-y-4">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="w-full p-3 sm:p-4 rounded-lg bg-black/50 text-white border border-white/20 focus:border-white/50 focus:outline-none min-h-[100px]"
-            placeholder="Enter your prompt here..."
-          />
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={handleGenerateContent}
-              disabled={!prompt || isProcessing}
-              className="flex-1 py-3 px-4 rounded-lg transition-all duration-300 text-white border border-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-            >
-              {isProcessing ? 'Generating...' : 'Generate'}
-            </button>
-            
-            <button
-              onClick={() => setShowSettings(true)}
-              className="flex-1 py-3 px-4 rounded-lg transition-all duration-300 text-white border border-white hover:bg-white/10 text-sm sm:text-base"
-            >
-              Settings
-            </button>
-            
-            <button
-              onClick={() => setShowPromptGenerator(true)}
-              className="flex-1 py-3 px-4 rounded-lg transition-all duration-300 text-white border border-white hover:bg-white/10 text-sm sm:text-base"
-            >
-              Prompt Generator
-            </button>
-          </div>
-
-          {/* Generated Content Display */}
+          {/* Main content area */}
           <div className="space-y-4">
-            <GenerationContainer
-              generation={generation}
-              isLoading={isProcessing}
-              isVideo={mode === 'video'}
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="w-full p-3 sm:p-4 rounded-lg bg-black/50 text-white border border-white/20 focus:border-white/50 focus:outline-none min-h-[100px]"
+              placeholder="Enter your prompt here..."
             />
             
-            {generation?.assets?.video || generation?.assets?.image ? (
-              <div className="flex justify-center gap-4 text-white">
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center gap-2 py-2 px-4 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
-                >
-                  <Download size={20} />
-                  Download {mode === 'video' ? 'Video' : 'Image'}
-                </button>
-              </div>
-            ) : null}
-
-            {/* New Home Button */}
-            <div className="flex justify-center">
-              <Link 
-                href="/dashboard"
-                className="py-2 px-6 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={handleGenerateContent}
+                disabled={!prompt || isProcessing}
+                className="flex-1 py-3 px-4 rounded-lg transition-all duration-300 text-white border border-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
-                Home
-              </Link>
+                {isProcessing ? 'Generating...' : 'Generate'}
+              </button>
+              
+              <button
+                onClick={() => setShowSettings(true)}
+                className="flex-1 py-3 px-4 rounded-lg transition-all duration-300 text-white border border-white hover:bg-white/10 text-sm sm:text-base"
+              >
+                Settings
+              </button>
+              
+              <button
+                onClick={() => setShowPromptGenerator(true)}
+                className="flex-1 py-3 px-4 rounded-lg transition-all duration-300 text-white border border-white hover:bg-white/10 text-sm sm:text-base"
+              >
+                Prompt Generator
+              </button>
+            </div>
+
+            {/* Generated Content Display */}
+            <div className="space-y-4">
+              <div className="relative min-h-[512px] rounded-lg border border-white/20 bg-black/50 overflow-hidden">
+                <GenerationContainer
+                  generation={generation}
+                  isLoading={isProcessing}
+                  isVideo={mode === 'video'}
+                />
+              </div>
+              
+              {generation?.assets?.video || generation?.assets?.image ? (
+                <div className="flex justify-center gap-4 text-white">
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-2 py-2 px-4 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
+                  >
+                    <Download size={20} />
+                    Download {mode === 'video' ? 'Video' : 'Image'}
+                  </button>
+                </div>
+              ) : null}
+
+              {/* New Home Button */}
+              <div className="flex justify-center">
+                <Link 
+                  href="/dashboard"
+                  className="py-2 px-6 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
+                >
+                  Home
+                </Link>
+              </div>
             </div>
           </div>
         </div>
