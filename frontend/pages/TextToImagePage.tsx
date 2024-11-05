@@ -770,7 +770,7 @@ const TextToImagePage: React.FC = () => {
             {/* New Home Button */}
             <div className="flex justify-center">
               <Link 
-                href="/"
+                href="/dashboard"
                 className="py-2 px-6 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
               >
                 Home
