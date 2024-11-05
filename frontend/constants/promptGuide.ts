@@ -1,278 +1,153 @@
-export const PROMPT_GUIDE = `# AI Prompt Enhancement Specialist Directive (Length-Optimized)
+export const PROMPT_GUIDE = `# AI Generation Prompt Guide
 
-## Core Length Guidelines
+## Stable Diffusion 3 Guidelines
 
-### Video Prompts (Luma Dream Machine)
-- Optimal length: 100-150 characters
-- Maximum length: 200 characters
-- Focus on motion and temporal elements
+### Image Prompts
+Examples:
 
-### Image Prompts (All Other Models)
-- Optimal length: 150-200 characters
-- Maximum length: 300 characters`;  // Add your full prompt guide here
+1. Fantasy Portrait:
+"glowing girl with small elegant horns, messy yellow hair, living amber eyes, intricate organic ornaments on skin and face, realistic"
 
-interface PromptStructure {
-  core: string[];
-  technical: string[];
-  enhancement: string[];
-}
+2. Fashion Photography:
+"high-fashion photograph featuring a young european woman posing on top of a large broken animatronic swan in an abandoned theme park. Full-body shot, centered frame. Model has shoulder-length dark brown shaggy hair, middle part, pale skin, neutral expression. Wearing tight white t-shirt with round neckline, black mini skirt, black leather heels. Soft, even lighting, contemporary mood."
 
-interface PromptBreakdown {
-  coreElements: string[];
-  technicalChoices: string[];
-  enhancementDetails: string[];
-  tokenCount?: number;
-  sentenceCount?: number;
-  notes?: string[];
-}
+3. Technical Abstract:
+"A futuristic depiction of a neural network architecture in metallic bright pastel colors against a black background."
+
+4. Character Design:
+"Stylish Harley Quinn with, fly in the sky high, skydiving glide, many clouds around, autumn, asymmetrical bob haircut, wearing only open pilot suit, passionate feelings, plump lips, bottomless eyes, the universe in the eyes, ideal slim figure, perfect slender body, small hips, edge of a fairy sky castle filled with sunlight, fairies flying, multi-colored stars and lights, lot of dust particles in the air, super detail, ultra quality, style raw, hdr, cinematic."
+
+## Luma AI Dream Machine Guidelines
+
+### Video Prompts
+Examples:
+
+1. Surreal Scenes:
+"A city floating in clouds, crystal buildings with rivers of light flowing beneath, ethereal sunset reflections, smooth camera glide through"
+
+2. Dynamic Movement:
+"High-speed chase through futuristic cityscape, flying vehicles weaving between neon-lit skyscrapers, fluid camera tracking"
+
+3. Nature & Wildlife:
+"Majestic wild horses galloping across plains at sunrise, tracking camera movement, golden sky backdrop"
+
+## Technical Guidelines
+
+### Stable Diffusion Tips:
+- Start with main subject description
+- Include specific details (hair, eyes, clothing)
+- Add decorative elements and textures
+- End with style/quality keywords
+- Specify model and ratio when needed
+- Balance detail level with clarity
+
+### Luma AI Tips:
+- Include camera movement type
+- Keep prompts "Goldilocks" length (not too long/short)
+- Consider enhance feature usage
+- Use reference images when possible
+- Specify motion intensity (1-4 scale)
+- Focus on single subject for complex motion
+
+### Scene Elements:
+- Lighting and atmosphere
+- Weather conditions
+- Time of day
+- Color palette
+- Texture and materials
+- Environmental effects
+- Motion dynamics (for video)
+
+### Best Practices:
+1. Keep prompts clear and specific
+2. Match detail level to complexity
+3. Use appropriate technical specifications
+4. Consider platform strengths
+5. Test and refine iteratively
+6. Include reference materials when possible
+
+### Model-Specific Optimization:
+- SD3: Focus on detail and style keywords
+- Luma: Emphasize motion and camera movement
+- Consider enhance feature strategically
+- Match complexity to subject matter
+- Use appropriate aspect ratios
+- Include technical specifications when needed`;
 
 interface PromptValidationResult {
   isValid: boolean;
   enhancedPrompt?: string;
-  breakdown?: PromptBreakdown;
   errors?: string[];
 }
 
-const IMAGE_TEMPLATES = {
-  subjects: {
-    character: [
-      "portrait", "full body", "close-up", "action pose", "dynamic stance"
-    ],
-    landscape: [
-      "panoramic view", "aerial perspective", "establishing shot", "wide angle", "detailed environment"
-    ],
-    object: [
-      "centered focus", "floating", "dramatic angle", "intricate detail", "macro shot"
-    ]
-  },
-  styles: {
-    realistic: [
-      "photorealistic", "hyperrealistic", "ultra detailed", "8k uhd", "octane render"
-    ],
-    artistic: [
-      "digital painting", "concept art", "illustration", "key visual", "matte painting"
-    ],
-    stylized: [
-      "anime style", "cartoon", "cel shaded", "studio ghibli", "disney style"
-    ]
-  },
-  lighting: {
-    natural: [
-      "golden hour", "morning light", "sunset", "moonlight", "ambient occlusion"
-    ],
-    studio: [
-      "rim lighting", "dramatic lighting", "studio lighting", "volumetric lighting", "cinematic lighting"
-    ],
-    atmospheric: [
-      "god rays", "ethereal glow", "bioluminescent", "neon lights", "magical illumination"
-    ]
-  },
-  quality: {
-    technical: [
-      "highly detailed", "masterful technique", "professional quality", "award winning", "trending on artstation"
-    ],
-    composition: [
-      "rule of thirds", "dynamic composition", "perfect framing", "dramatic angle", "symmetrical composition"
-    ],
-    enhancement: [
-      "post processing", "color grading", "depth of field", "bokeh effect", "ray tracing"
-    ]
-  },
-  atmosphere: {
-    mood: [
-      "ethereal", "dramatic", "mysterious", "peaceful", "epic"
-    ],
-    weather: [
-      "foggy", "misty", "rainy", "stormy", "clear sky"
-    ],
-    time: [
-      "dawn", "dusk", "night time", "midday", "twilight"
-    ]
-  }
-};
-
-const VIDEO_TEMPLATES = {
-  cameraShots: [
-    "A sweeping aerial shot",
-    "A dynamic tracking shot",
-    "An intimate close-up",
-    "A cinematic dolly shot",
-    "A fluid steadicam shot"
-  ],
-  transitions: [
-    "glides through",
-    "follows",
-    "reveals",
-    "captures",
-    "moves across"
-  ],
-  atmosphericElements: [
-    "golden hour sunlight",
-    "dramatic shadows",
-    "ethereal mist",
-    "ambient light",
-    "moody atmosphere"
-  ]
-};
-
-export function validateAndEnhancePrompt(
+export const validateAndEnhancePrompt = (
   prompt: string,
   model: string,
   style?: string,
   genre?: string,
   movieRef?: string,
   bookRef?: string
-): PromptValidationResult {
+): PromptValidationResult => {
   const isLumaAI = model === 'luma-ai';
+  const maxLength = isLumaAI ? 200 : 300;
   const errors: string[] = [];
 
+  // Basic validation
   if (!prompt) {
-    return { isValid: false, errors: ['Prompt cannot be empty'] };
+    errors.push('Prompt cannot be empty');
+    return { isValid: false, errors };
   }
 
-  return isLumaAI 
-    ? enhanceVideoPrompt(prompt, genre, movieRef, bookRef)
-    : enhanceImagePrompt(prompt, style, genre, movieRef, bookRef);
-}
-
-function enhanceVideoPrompt(
-  prompt: string,
-  genre?: string,
-  movieRef?: string,
-  bookRef?: string
-): PromptValidationResult {
-  const sentences = prompt.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  
-  if (sentences.length > 4) {
-    return { 
-      isValid: false, 
-      errors: ['Video prompts must not exceed 4 sentences'] 
-    };
+  if (prompt.length > maxLength) {
+    errors.push(`Prompt exceeds maximum length of ${maxLength} characters`);
+    return { isValid: false, errors };
   }
 
-  let enhancedSentences = [];
-  
-  // Add camera movement if missing
-  if (!sentences[0]?.toLowerCase().includes('shot')) {
-    const cameraShot = VIDEO_TEMPLATES.cameraShots[
-      Math.floor(Math.random() * VIDEO_TEMPLATES.cameraShots.length)
-    ];
-    enhancedSentences.push(`${cameraShot} ${sentences[0]}`);
+  // Enhance prompt based on model
+  let enhancedPrompt = prompt;
+
+  // Add style if provided
+  if (style) {
+    enhancedPrompt = `${style} style: ${enhancedPrompt}`;
+  }
+
+  // Add genre-specific keywords
+  if (genre) {
+    enhancedPrompt = `${genre} themed, ${enhancedPrompt}`;
+  }
+
+  // Add movie reference
+  if (movieRef) {
+    enhancedPrompt = `${enhancedPrompt}, inspired by ${movieRef}`;
+  }
+
+  // Add book reference
+  if (bookRef) {
+    enhancedPrompt = `${enhancedPrompt}, in the style of ${bookRef}`;
+  }
+
+  // Model-specific enhancements
+  if (isLumaAI) {
+    // Add motion-related keywords for video
+    if (!enhancedPrompt.toLowerCase().includes('motion') && 
+        !enhancedPrompt.toLowerCase().includes('moving')) {
+      enhancedPrompt = `${enhancedPrompt}, with fluid motion`;
+    }
   } else {
-    enhancedSentences.push(sentences[0]);
+    // Add quality keywords for images
+    if (!enhancedPrompt.toLowerCase().includes('quality')) {
+      enhancedPrompt = `${enhancedPrompt}, high quality, detailed`;
+    }
   }
 
-  // Add remaining sentences
-  enhancedSentences.push(...sentences.slice(1));
-
-  // Add atmosphere if missing
-  if (!prompt.toLowerCase().includes('atmosphere')) {
-    const atmosphere = VIDEO_TEMPLATES.atmosphericElements[
-      Math.floor(Math.random() * VIDEO_TEMPLATES.atmosphericElements.length)
-    ];
-    enhancedSentences.push(`${atmosphere} creates a ${genre || 'compelling'} atmosphere`);
+  // Final length check after enhancements
+  if (enhancedPrompt.length > maxLength) {
+    errors.push(`Enhanced prompt exceeds maximum length of ${maxLength} characters`);
+    return { isValid: false, errors };
   }
 
   return {
     isValid: true,
-    enhancedPrompt: enhancedSentences.join('. ') + '.',
-    breakdown: {
-      coreElements: enhancedSentences,
-      technicalChoices: ['Camera movement', 'Scene progression'],
-      enhancementDetails: ['Atmospheric elements'],
-      sentenceCount: enhancedSentences.length
-    }
+    enhancedPrompt
   };
-}
-
-function enhanceImagePrompt(
-  prompt: string,
-  style?: string,
-  genre?: string,
-  movieRef?: string,
-  bookRef?: string
-): PromptValidationResult {
-  const subjectType = determineSubjectType(prompt);
-  const core = buildCoreLayer(prompt, subjectType);
-  const technical = buildTechnicalLayer(style, genre, subjectType);
-  const enhancement = buildEnhancementLayer(movieRef, bookRef, subjectType);
-
-  const enhancedPrompt = [
-    core.join(', '),
-    'BREAK',
-    technical.join(', '),
-    'BREAK',
-    enhancement.join(', ')
-  ].join(' ');
-
-  return {
-    isValid: true,
-    enhancedPrompt,
-    breakdown: {
-      coreElements: core,
-      technicalChoices: technical,
-      enhancementDetails: enhancement,
-      notes: generatePromptNotes(subjectType, style)
-    }
-  };
-}
-
-function determineSubjectType(prompt: string): 'character' | 'landscape' | 'object' {
-  const prompt_lower = prompt.toLowerCase();
-  if (prompt_lower.includes('person') || prompt_lower.includes('character')) {
-    return 'character';
-  } else if (prompt_lower.includes('landscape') || prompt_lower.includes('scene')) {
-    return 'landscape';
-  }
-  return 'object';
-}
-
-function buildCoreLayer(prompt: string, subjectType: string): string[] {
-  const words = prompt.split(/[\s,]+/).filter(Boolean).slice(0, 3);
-  return [
-    ...words,
-    IMAGE_TEMPLATES.subjects[subjectType][
-      Math.floor(Math.random() * IMAGE_TEMPLATES.subjects[subjectType].length)
-    ]
-  ];
-}
-
-function buildTechnicalLayer(
-  style?: string,
-  genre?: string,
-  subjectType?: string
-): string[] {
-  return [
-    style || 'highly detailed',
-    IMAGE_TEMPLATES.quality.technical[
-      Math.floor(Math.random() * IMAGE_TEMPLATES.quality.technical.length)
-    ],
-    genre ? `${genre} themed` : null
-  ].filter(Boolean);
-}
-
-function buildEnhancementLayer(
-  movieRef?: string,
-  bookRef?: string,
-  subjectType?: string
-): string[] {
-  return [
-    IMAGE_TEMPLATES.lighting.studio[
-      Math.floor(Math.random() * IMAGE_TEMPLATES.lighting.studio.length)
-    ],
-    IMAGE_TEMPLATES.atmosphere.mood[
-      Math.floor(Math.random() * IMAGE_TEMPLATES.atmosphere.mood.length)
-    ],
-    movieRef ? `inspired by ${movieRef}` : null,
-    bookRef ? `in the style of ${bookRef}` : null
-  ].filter(Boolean);
-}
-
-function generatePromptNotes(subjectType: string, style?: string): string[] {
-  return [
-    `Optimized for ${subjectType} composition`,
-    `Enhanced with ${style || 'default'} style elements`,
-    'Added quality markers and lighting',
-    'Optimized keyword arrangement'
-  ];
-}
+};
