@@ -4,24 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build",
+    "build": "cd frontend && npm install && npm run build",
     "start": "cd frontend && npm start"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@lumaai/luma-web": "^0.2.2",
-    "@types/node": "^22.9.0",
-    "@types/p5": "^1.7.6",
-    "concurrently": "^8.2.2",
-    "dat.gui": "^0.7.9",
-    "lumaai": "^1.1.0",
-    "medusa-io": "file:",
-    "next": "^15.0.2",
-    "p5": "^1.11.1"
-  },
-  "devDependencies": {
-    "raw-loader": "^4.0.2"
+    "medusa-io": "file:"
   }
 }
