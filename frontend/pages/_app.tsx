@@ -1,9 +1,12 @@
 import type { AppProps } from "next/app"
 import { useRouter } from 'next/router'
-import '../styles/globals.css'  // Make sure this exists
+import '../styles/globals.css'
 import { SessionProvider } from "next-auth/react"
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ 
+  Component, 
+  pageProps: { session, ...pageProps } 
+}: AppProps) {
   const router = useRouter()
 
   // Redirect /ImageToVideoPage to /image-to-video
@@ -13,7 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }
 
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <main>
         <Component {...pageProps} />
       </main>
