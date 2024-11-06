@@ -29,9 +29,10 @@ export default function Dashboard() {
             Text to Image Generation
           </h2>
           <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
-            Create stunning images from text descriptions using state-of-the-art AI models including Stable Diffusion, 
-            DALL·E 3, Midjourney, and more. Features advanced options like style selection, aspect ratio control, 
-            and reference image uploads for enhanced results.
+            Create stunning images using our integrated AI models including Stable Diffusion XL, 
+            Stable Diffusion 3.5, Flux Models (Dev, Pro, 1.1 Pro), and Recraft V3. 
+            Features the Prometheus Prompt Engine for enhanced results, with advanced controls 
+            for style, dimensions, and quality settings.
           </p>
         </div>
       </Link>
@@ -53,8 +54,9 @@ export default function Dashboard() {
             Image to Video Generation
           </h2>
           <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
-            Transform static images into dynamic videos with our cutting-edge AI technology. 
-            Perfect for creating engaging content, animations, and visual effects from your existing images.
+            Transform your ideas into dynamic videos with Luma AI integration. 
+            Perfect for creating engaging content with fluid motion and cinematic quality, 
+            powered by state-of-the-art video generation technology.
           </p>
         </div>
       </Link>
@@ -76,8 +78,9 @@ export default function Dashboard() {
             AI Prompt Generation
           </h2>
           <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
-            Generate powerful, context-aware prompts for your AI image and video creations. 
-            Our advanced prompt generator helps you craft the perfect descriptions for optimal results.
+            Leverage our Prometheus Prompt Engine to generate optimized prompts. 
+            Features genre-based enhancement, style presets, movie references, 
+            and automatic quality boosting for superior results across all supported models.
           </p>
         </div>
       </Link>

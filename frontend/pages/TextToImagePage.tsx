@@ -153,6 +153,18 @@ const ASPECT_RATIOS = [
   { label: 'IMAX (1.43:1)', value: '1.43:1' }
 ];
 
+// Add these type definitions at the top of your file
+type GenerationMode = 'image' | 'video';
+
+interface GenerationAssets {
+  image?: string;
+  video?: string;
+}
+
+interface GenerationState {
+  assets: GenerationAssets;
+}
+
 const TextToImagePage: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
@@ -177,17 +189,12 @@ const TextToImagePage: React.FC = () => {
   const [movieReference, setMovieReference] = useState<string>('');
   const [bookReference, setBookReference] = useState<string>('');
   const [style, setStyle] = useState<string>('');
-  const [mode, setMode] = useState<'image' | 'video'>('image');
+  const [mode, setMode] = useState<GenerationMode>('image');
   const [showPromptGenerator, setShowPromptGenerator] = useState<boolean>(false);
   const [scheduler, setScheduler] = useState<string>('K_EULER_ANCESTRAL');
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
-  const [generation, setGeneration] = useState<{
-    assets: {
-      video?: string;
-      image?: string;
-    };
-  } | null>(null);
+  const [generation, setGeneration] = useState<GenerationState>({ assets: {} });
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * BACKGROUND_IMAGES.length);

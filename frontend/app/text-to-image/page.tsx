@@ -1,1 +1,0 @@
-import BlackHoleVisualization from '@/components/BlackHoleVisualization';

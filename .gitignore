@@ -54,3 +54,12 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Testing
+coverage
+
+# Dependencies
+.pnp
+.pnp.js
+
+.vercel

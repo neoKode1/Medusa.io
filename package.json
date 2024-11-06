@@ -1,10 +1,11 @@
 {
   "name": "medusa-io",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
   "scripts": {
-    "dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && .\\venv\\Scripts\\python -m uvicorn run:app --reload --host 0.0.0.0 --port 8000\"",
-    "install-deps": "npm install && cd frontend && npm install"
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start"
   },
   "keywords": [],
   "author": "",

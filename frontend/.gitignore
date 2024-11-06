@@ -26,3 +26,4 @@ Thumbs.db
 
 # Service account keys
 *-service-account.json
+.vercel
