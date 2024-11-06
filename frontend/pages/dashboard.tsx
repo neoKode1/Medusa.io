@@ -13,7 +13,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Text to Image Section */}
-      <Link href="/TextToImagePage" className="relative h-screen w-full group cursor-pointer snap-start">
+      <Link href="/text-to-image" className="relative h-screen w-full group cursor-pointer snap-start">
         <video
           autoPlay
           loop
@@ -37,8 +37,8 @@ export default function Dashboard() {
         </div>
       </Link>
 
-      {/* Image to Video Section */}
-      <Link href="/TextToImagePage" className="relative h-screen w-full group cursor-pointer snap-start">
+      {/* Prompt Generation Section */}
+      <Link href="#" className="relative h-screen w-full group cursor-pointer snap-start">
         <video
           autoPlay
           loop
@@ -47,30 +47,6 @@ export default function Dashboard() {
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/anniemae.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
-          <h2 className="text-5xl md:text-6xl font-bold text-white text-center group-hover:scale-110 transition-transform duration-300 mb-6">
-            Image to Video Generation
-          </h2>
-          <p className="text-white/90 text-center max-w-3xl text-lg md:text-xl lg:text-2xl">
-            Transform your ideas into dynamic videos with Luma AI integration. 
-            Perfect for creating engaging content with fluid motion and cinematic quality, 
-            powered by state-of-the-art video generation technology.
-          </p>
-        </div>
-      </Link>
-
-      {/* Prompt Generation Section */}
-      <Link href="/TextToImagePage" className="relative h-screen w-full group cursor-pointer snap-start">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/leena.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 md:px-8">
