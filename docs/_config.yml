@@ -1,0 +1,22 @@
+title: MEDUSA.io Documentation
+description: Documentation for MEDUSA.io AI Image & Video Generation Platform
+theme: jekyll-theme-primer
+baseurl: ""
+
+# Navigation
+header_pages:
+  # Core Features
+  - features/text-to-image.md
+  - features/prompt-generation.md
+  
+  # Technical Documentation
+  - api/generate-prompt.md
+  
+  # Guides
+  - guides/prompt-writing.md
+  - guides/genres-and-styles.md
+  - guides/model-optimization.md
+  
+  # Reference
+  - reference/prompt-templates.md
+  - reference/style-presets.md

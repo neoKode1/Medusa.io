@@ -13,8 +13,7 @@ const BlackHoleVisualization = dynamic(() => import('@/components/BlackHoleVisua
 });
 
 const MODES = [
-  { value: 'image', label: 'Image Generation' },
-  { value: 'video', label: 'Video Generation' }
+  { value: 'image', label: 'Image Generation' }
 ];
 
 const GENRES = {
@@ -100,11 +99,9 @@ const MODELS = {
   'black-forest-labs/flux-dev': 'Flux Dev',
   'black-forest-labs/flux-pro': 'Flux Pro',
   'black-forest-labs/flux-1.1-pro': 'Flux 1.1 Pro',
-  'stability-ai/sdxl': 'Stable Diffusion XL',
   'stability-ai/stable-diffusion-xl-base-1.0': 'Stable Diffusion XL 1.0',
   'stability-ai/stable-diffusion-3.5-large': 'Stable Diffusion 3.5',
-  'recraft-ai/recraft-v3': 'Recraft V3',
-  'luma-ai': 'Luma AI (Video)'
+  'recraft-ai/recraft-v3': 'Recraft V3'
 };
 
 const BACKGROUND_IMAGES = [
@@ -156,69 +153,107 @@ const ASPECT_RATIOS = [
 // Add these type definitions at the top of your file
 type GenerationMode = 'image' | 'video';
 
-interface GenerationAssets {
-  image?: string;
-  video?: string;
-}
-
 interface GenerationState {
-  assets: GenerationAssets;
+  assets: {
+    image?: string;
+    video?: string;
+  };
 }
 
+// Helper functions
+const validateInputs = (values: any) => {
+  const errors: Record<string, string> = {};
+  
+  // Model validation
+  if (!values.model) {
+    errors.model = 'Model is required';
+  }
+
+  // Steps validation (between 1 and 150)
+  if (values.steps < 1 || values.steps > 150) {
+    errors.steps = 'Steps must be between 1 and 150';
+  }
+
+  // Width and height validation (multiples of 8, between 128 and 1024)
+  if (values.width % 8 !== 0 || values.width < 128 || values.width > 1024) {
+    errors.width = 'Width must be a multiple of 8 between 128 and 1024';
+  }
+  if (values.height % 8 !== 0 || values.height < 128 || values.height > 1024) {
+    errors.height = 'Height must be a multiple of 8 between 128 and 1024';
+  }
+
+  // Guidance validation (between 1 and 20)
+  if (values.guidance < 1 || values.guidance > 20) {
+    errors.guidance = 'Guidance must be between 1 and 20';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+
+// Single component definition
 const TextToImagePage: React.FC = () => {
-  const [prompt, setPrompt] = useState<string>('');
-  const [generatedContent, setGeneratedContent] = useState<string | null>(null);
-  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [model, setModel] = useState<string>('black-forest-labs/flux-dev');
+  // All state definitions - removed duplicates
+  const [mode, setMode] = useState<GenerationMode>('image');
+  const [prompt, setPrompt] = useState('');
+  const [model, setModel] = useState(Object.keys(MODELS)[0]);
+  const [steps, setSteps] = useState(30);
+  const [width, setWidth] = useState(512);
+  const [height, setHeight] = useState(512);
+  const [guidance, setGuidance] = useState(7.5);
+  const [scheduler, setScheduler] = useState<string>('K_EULER_ANCESTRAL');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [steps, setSteps] = useState<number>(25);
-  const [width, setWidth] = useState<number>(512);
-  const [height, setHeight] = useState<number>(512);
-  const [guidance, setGuidance] = useState<number>(3);
-  const [interval, setInterval] = useState<number>(2);
-  const [aspectRatio, setAspectRatio] = useState<string>('16:9');
-  const [outputFormat, setOutputFormat] = useState<string>('png');
-  const [outputQuality, setOutputQuality] = useState<number>(80);
-  const [safetyTolerance, setSafetyTolerance] = useState<number>(2);
-  const [promptUpsampling, setPromptUpsampling] = useState<boolean>(false);
-  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [generation, setGeneration] = useState<GenerationState>({ assets: {} });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [promptUpsampling, setPromptUpsampling] = useState(false);
+  const [safetyTolerance, setSafetyTolerance] = useState(0.5);
+  const [outputQuality, setOutputQuality] = useState(100);
+  const [aspectRatio, setAspectRatio] = useState('1:1');
+  const [interval, setInterval] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showPromptGenerator, setShowPromptGenerator] = useState(false);
   const [description, setDescription] = useState<string>('');
   const [genre, setGenre] = useState<string>('');
   const [movieReference, setMovieReference] = useState<string>('');
   const [bookReference, setBookReference] = useState<string>('');
   const [style, setStyle] = useState<string>('');
-  const [mode, setMode] = useState<GenerationMode>('image');
-  const [showPromptGenerator, setShowPromptGenerator] = useState<boolean>(false);
-  const [scheduler, setScheduler] = useState<string>('K_EULER_ANCESTRAL');
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
-  const [generation, setGeneration] = useState<GenerationState>({ assets: {} });
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * BACKGROUND_IMAGES.length);
-    setBackgroundImage(BACKGROUND_IMAGES[randomIndex]);
-  }, []);
-
-  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Event handlers
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target?.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) {
         setError('File is too large. Please use an image under 10MB.');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          setUploadedImage(e.target.result as string);
+      try {
+        // Create FormData and append file
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Upload to your server or a service like S3
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image');
         }
-      };
-      reader.onerror = () => {
-        setError('Failed to read file');
-      };
-      reader.readAsDataURL(file);
+
+        const { url } = await uploadResponse.json();
+        setUploadedImage(url); // Store the actual URL, not the base64
+      } catch (err) {
+        console.error('Upload error:', err);
+        setError('Failed to upload image');
+      }
     }
   };
 
@@ -268,51 +303,6 @@ const TextToImagePage: React.FC = () => {
     }
   };
 
-  const handleGenerateVideo = async (enhancedPrompt: string) => {
-    console.log('Starting video generation with prompt:', enhancedPrompt);
-    try {
-      if (uploadedImage) {
-        const base64Size = uploadedImage.length * 0.75;
-        console.log('Uploaded image size (base64):', base64Size);
-        if (base64Size > 10 * 1024 * 1024) {
-          throw new Error('Image file is too large. Please use an image under 10MB.');
-        }
-      }
-
-      const response = await fetch('/api/lumaai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: enhancedPrompt,
-          keyframes: uploadedImage ? {
-            frame0: {
-              type: "image",
-              url: uploadedImage
-            }
-          } : undefined,
-        }),
-      });
-
-      console.log('Video generation response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Video generation error response:', errorData);
-        throw new Error(errorData.error || `API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Video generated successfully:', data.videoUrl);
-      setGeneratedVideo(data.videoUrl);
-      setGeneratedContent(data.videoUrl); // Set both video and content
-    } catch (error) {
-      console.error('Video generation error:', error);
-      throw error; // Re-throw to be handled by handleGenerateContent
-    }
-  };
-
   const handleGeneratePrompt = async () => {
     setIsProcessing(true);
     try {
@@ -347,7 +337,7 @@ const TextToImagePage: React.FC = () => {
   };
 
   const handleDownload = async () => {
-    const url = generation?.assets?.video || generation?.assets?.image;
+    const url = generation?.assets?.image;
     if (!url) return;
 
     try {
@@ -356,7 +346,7 @@ const TextToImagePage: React.FC = () => {
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = `generated-${mode === 'video' ? 'video.mp4' : 'image.png'}`;
+      a.download = 'generated-image.png';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -368,77 +358,43 @@ const TextToImagePage: React.FC = () => {
   };
 
   const handleGenerateContent = async () => {
+    if (!prompt) return;
+    
     setIsProcessing(true);
     setError(null);
-    
+
     try {
-      if (model === 'luma-ai' || mode === 'video') {
-        let imageUrl = uploadedImage;
-        
-        if (imageUrl?.startsWith('data:image')) {
-          imageUrl = null;
-        }
+      const requestBody = {
+        prompt,
+        model_id: model,
+        steps: Math.min(Math.max(steps, 20), 150),
+        width: Math.min(Math.max(width - (width % 8), 128), 1024),
+        height: Math.min(Math.max(height - (height % 8), 128), 1024),
+        guidance_scale: Math.min(Math.max(guidance, 1), 20),
+        scheduler: model.includes('flux') ? scheduler : undefined,
+        prompt_upsampling: promptUpsampling,
+        safety_tolerance: Math.min(Math.max(safetyTolerance, 0), 1),
+        output_quality: Math.min(Math.max(outputQuality, 1), 100)
+      };
 
-        const response = await fetch('/api/lumaai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            prompt,
-            keyframes: imageUrl ? {
-              frame0: {
-                type: "image",
-                url: imageUrl
-              }
-            } : undefined,
-            guidance_scale: Number(guidance)
-          }),
-        });
+      const response = await fetch('/api/predictions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
 
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to generate video');
-        }
-
-        setGeneration({
-          assets: {
-            video: data.videoUrl
-          }
-        });
-      } else {
-        const response = await fetch('/api/predictions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt,
-            model_id: model,
-            steps: Number(steps),
-            width: Number(width),
-            height: Number(height),
-            guidance: Number(guidance),
-            scheduler: model.includes('flux') ? scheduler : undefined,
-            output_format: 'png',
-            output_quality: 100,
-            reference_image: referenceImage
-          }),
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to generate content');
-        }
-
-        setGeneration({
-          assets: {
-            [mode === 'video' ? 'video' : 'image']: 
-              model === 'luma-ai' || mode === 'video' ? data.videoUrl : data.imageUrl
-          }
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate content');
       }
-    } catch (error) {
-      console.error('Generation error:', error);
-      setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+
+      const data = await response.json();
+      setGeneration({ assets: { image: data.imageUrl } });
+    } catch (err: any) {
+      console.error('Generation error:', err);
+      setError(err.message || 'Failed to generate content');
     } finally {
       setIsProcessing(false);
     }
@@ -451,66 +407,39 @@ const TextToImagePage: React.FC = () => {
     }
   };
 
-  const validateInputs = (values: any) => {
-    const errors: Record<string, string> = {};
-    
-    // Model validation
-    if (!values.model) {
-      errors.model = 'Model is required';
-    }
+  // Effects
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * BACKGROUND_IMAGES.length);
+    setBackgroundImage(BACKGROUND_IMAGES[randomIndex]);
+  }, []);
 
-    // Steps validation (between 1 and 150)
-    if (values.steps < 1 || values.steps > 150) {
-      errors.steps = 'Steps must be between 1 and 150';
-    }
-
-    // Width and height validation (multiples of 8, between 128 and 1024)
-    if (values.width % 8 !== 0 || values.width < 128 || values.width > 1024) {
-      errors.width = 'Width must be a multiple of 8 between 128 and 1024';
-    }
-    if (values.height % 8 !== 0 || values.height < 128 || values.height > 1024) {
-      errors.height = 'Height must be a multiple of 8 between 128 and 1024';
-    }
-
-    // Guidance validation (between 1 and 20)
-    if (values.guidance < 1 || values.guidance > 20) {
-      errors.guidance = 'Guidance must be between 1 and 20';
-    }
-
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors
-    };
-  };
-
-  const handleReferenceImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target?.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        setError('Reference image is too large. Please use an image under 10MB.');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          setReferenceImage(e.target.result as string);
-        }
-      };
-      reader.onerror = () => {
-        setError('Failed to read reference image');
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Add effect to update quality settings when aspect ratio changes
   useEffect(() => {
     const optimalSettings = getOptimalQualitySettings(aspectRatio);
     setWidth(optimalSettings.width);
     setHeight(optimalSettings.height);
     setOutputQuality(optimalSettings.recommendedQuality);
   }, [aspectRatio]);
+
+  const handleReferenceImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target?.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Reference image must be under 10MB');
+        return;
+      }
+
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setReferenceImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error uploading reference image:', err);
+        setError('Failed to upload reference image');
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen relative">
@@ -832,17 +761,26 @@ const TextToImagePage: React.FC = () => {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              className="w-full p-3 sm:p-4 rounded-lg bg-black/50 text-white border border-white/20 focus:border-white/50 focus:outline-none min-h-[100px]"
+              className="w-full p-3 sm:p-4 rounded-lg bg-black/50 text-white border border-white/20 focus:border-white/50 focus:outline-none min-h-[150px]"
               placeholder="Enter your prompt here..."
+              rows={6}
+              style={{ resize: 'vertical' }}
             />
             
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleGenerateContent}
-                disabled={!prompt || isProcessing}
+                disabled={isProcessing || !prompt.trim()}
                 className="flex-1 py-3 px-4 rounded-lg transition-all duration-300 text-white border border-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
-                {isProcessing ? 'Generating...' : 'Generate'}
+                {isProcessing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  'Generate'
+                )}
               </button>
               
               <button
@@ -870,14 +808,14 @@ const TextToImagePage: React.FC = () => {
                 />
               </div>
               
-              {generation?.assets?.video || generation?.assets?.image ? (
+              {generation?.assets?.image ? (
                 <div className="flex justify-center gap-4 text-white">
                   <button
                     onClick={handleDownload}
                     className="flex items-center gap-2 py-2 px-4 rounded-lg text-white border border-white hover:bg-white/10 transition-all duration-300"
                   >
                     <Download size={20} />
-                    Download {mode === 'video' ? 'Video' : 'Image'}
+                    Download Image
                   </button>
                 </div>
               ) : null}
@@ -899,4 +837,5 @@ const TextToImagePage: React.FC = () => {
   );
 };
 
+// Single export
 export default TextToImagePage;

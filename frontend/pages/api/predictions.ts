@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next/types';
 import Replicate from "replicate";
 
 const replicate = new Replicate({
