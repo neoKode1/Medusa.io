@@ -1,39 +1,24 @@
-# Ignore system files and directories
-.vscode/          # VSCode settings folder
-.idea/            # JetBrains IDEs (e.g., WebStorm, IntelliJ) settings
-*.log             # Log files
-.DS_Store         # macOS system file
-Thumbs.db         # Windows system file
-
-# Ignore Next.js build folder
-.next/            # Next.js build output folder
-
-# Ignore node modules and lock files
-node_modules/     # Dependencies
-package-lock.json # npm lock file (if you only want yarn.lock)
-yarn.lock         # Yarn lock file (if you only want package-lock.json)
-
-# Ignore environment and secret files
-.env.local        # Local environment variables
-.env.development  # Development environment variables
-.env.production   # Production environment variables
-.env.test         # Testing environment variables
-
-# Ignore IDE and editor settings
-*.sublime-project # Sublime Text settings
-*.sublime-workspace
-*.swp             # Vi/Vim temporary files
-*.swo
-
-# Ignore build files from static export
-out/              # Next.js static export folder (if using static HTML export)
-
-# Ignore miscellaneous system files
-*.bak             # Backup files
-*.tmp             # Temporary files
-
-# Ignore lockfiles if not necessary
-*.lock            # Other lock files (e.g., SQLite, system-related)
+# Environment variables
+.env
 .env.local
-.next/
+.env.*.local
+
+# Google Cloud credentials
+*.json
+medusaio-c82432c3e66e.json
+
+# Dependencies
 node_modules/
+
+# Build output
+.next/
+out/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
+*.pem

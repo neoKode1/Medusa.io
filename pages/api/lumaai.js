@@ -1,40 +1,52 @@
+import formidable from 'formidable';
+import fs from 'fs';
 import { LumaAI } from 'lumaai';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} not allowed`);
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    const { prompt, model = 'gen3a_turbo', duration = 10, ratio = '16:9', promptImage } = req.body;
+    const form = new formidable.IncomingForm({
+      maxFileSize: 5 * 1024 * 1024, // 5MB limit
+      keepExtensions: true,
+    });
 
-    if (!process.env.LUMAAI_API_KEY) {
-      throw new Error('LumaAI API key is missing.');
-    }
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        resolve([fields, files]);
+      });
+    });
 
-    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
-      throw new Error('Invalid or missing prompt.');
+    const prompt = fields.prompt;
+    const model = fields.model;
+    let referenceImageBase64 = null;
+
+    if (files.referenceImage) {
+      const imageFile = files.referenceImage;
+      const imageBuffer = fs.readFileSync(imageFile.filepath);
+      referenceImageBase64 = `data:${imageFile.mimetype};base64,${imageBuffer.toString('base64')}`;
     }
 
     const client = new LumaAI({
       authToken: process.env.LUMAAI_API_KEY,
     });
 
-    let generation;
-    try {
-      generation = await client.generations.create({
-        prompt,
-        model,
-        duration,
-        ratio,
-        image: promptImage,
-      });
-      console.log('Generation created:', generation.id);
-    } catch (createError) {
-      console.error('Error creating generation:', createError);
-      throw new Error(`Failed to create generation: ${createError.message}`);
-    }
+    let generation = await client.generations.create({
+      prompt,
+      model: 'gen3a_turbo',
+      duration: 10,
+      ratio: '16:9',
+      image: referenceImageBase64, // Add reference image if available
+    });
 
     let completed = false;
     const maxRetries = 30; // Increased max retries
@@ -78,7 +90,7 @@ export default async function handler(req, res) {
     console.log('Video generation completed successfully. URL:', videoUrl);
     res.status(200).json({ videoUrl });
   } catch (error) {
-    console.error('Error generating video with LumaAI:', error);
-    res.status(500).json({ message: 'Failed to generate video with LumaAI', error: error.message });
+    console.error('Error in video generation:', error);
+    res.status(500).json({ message: 'Error generating video', error: error.message });
   }
 }

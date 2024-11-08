@@ -1,59 +1,55 @@
-import { useState } from 'react';  // Import necessary hooks
-import { ChevronDown, RefreshCw } from 'lucide-react';  // Import icons for UI
+import { useState } from 'react';
+import { ChevronDown, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 const GeneratePromptPage = () => {
-  const [description, setDescription] = useState('');  // State for user input
-  const [generatedPrompts, setGeneratedPrompts] = useState([]);  // State for storing generated prompts
-  const [isProcessing, setIsProcessing] = useState(false);  // State for loading status
-  const [error, setError] = useState(null);  // State for errors
-  const [showDropdown, setShowDropdown] = useState(false);  // State for dropdown menu
+  const [description, setDescription] = useState('');
+  const [generatedPrompts, setGeneratedPrompts] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // Function to toggle dropdown visibility
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
 
-  // Function to handle prompt generation
   const handleGenerate = async () => {
+    if (!description.trim()) return;
+
     setIsProcessing(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/generate-prompt', {  // Call the API to generate a prompt
+      const response = await fetch('/api/generate-prompt', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ description }),  // Send the user's description to the API
+        body: JSON.stringify({ description }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setGeneratedPrompts([...generatedPrompts, data.prompt]);  // Add the new prompt to the list
-        setDescription('');  // Reset the input field
-        setIsProcessing(false);
-      } else {
-        console.error('Error:', response.statusText);
-        setError('Failed to generate prompt. Please try again.');
-        setIsProcessing(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
+      setGeneratedPrompts(prevPrompts => [...prevPrompts, data.prompt]);
+      setDescription('');
     } catch (error) {
-      console.error('Unexpected error:', error);
-      setError('An unexpected error occurred while generating the prompt.');
+      console.error('Error:', error);
+      setError('Failed to generate prompt. Please try again.');
+    } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
+    <div className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
       style={{
-        backgroundImage: "url('/Medusa.svg.svg')",  // Background image
+        backgroundImage: "url('/Medusa.svg.svg')",
         backgroundSize: '2000px',
         backgroundPosition: 'center',
-      }}
-    >
+      }}>
       <div className="bg-white bg-opacity-20 p-8 rounded-lg max-w-2xl w-full">
         {/* Dropdown Menu */}
         <div className="relative mb-8">
@@ -82,10 +78,14 @@ const GeneratePromptPage = () => {
           )}
         </div>
 
-        <h1 className="text-4xl font-bold mb-8 text-center text-[#64748b]">Unlock limitless potential with an AI generated prompt</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center text-[#64748b]">
+          Unlock limitless potential with an AI generated prompt
+        </h1>
 
         <div className="space-y-6">
-          <label htmlFor="description" className="block text-lg mb-2">Describe what you want:</label>
+          <label htmlFor="description" className="block text-lg mb-2">
+            Describe what you want:
+          </label>
           <textarea
             id="description"
             value={description}
@@ -96,7 +96,7 @@ const GeneratePromptPage = () => {
           />
           <button
             onClick={handleGenerate}
-            disabled={!description || isProcessing}
+            disabled={!description.trim() || isProcessing}
             className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 text-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
