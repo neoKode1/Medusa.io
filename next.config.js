@@ -6,14 +6,27 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "replicate.delivery",
+        pathname: '/**',
       },
       {
         protocol: "https",
         hostname: "pbxt.replicate.delivery",
+        pathname: '/**',
       },
     ],
-    domains: ['replicate.delivery', 'pbxt.replicate.delivery'],
-    unoptimized: true,
+    domains: ['localhost'],
+    unoptimized: false,
+    formats: ['image/webp', 'image/jpeg', 'image/png'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/uploads/**',
+      },
+    ],
   },
   async redirects() {
     return [

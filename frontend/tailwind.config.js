@@ -6,11 +6,10 @@ module.exports = {
   ],
   theme: {
     extend: {
-      animation: {
-        'orbit1': 'orbit1 12s linear infinite',
-        'orbit2': 'orbit2 18s linear infinite', 
-        'orbit3': 'orbit3 24s linear infinite',
-      }
+      colors: {
+        'runway-black': '#0A0A0A',
+        'runway-gray': '#1A1A1A',
+      },
     },
   },
   plugins: [],

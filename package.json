@@ -8,6 +8,11 @@
     "start": "cd frontend && npm start"
   },
   "dependencies": {
-    "medusa-io": "file:"
+    "@radix-ui/react-select": "^1.2.2",
+    "@radix-ui/react-slider": "^1.1.2",
+    "@radix-ui/react-tabs": "^1.1.1",
+    "clsx": "^2.1.1",
+    "medusa-io": "file:",
+    "tailwind-merge": "^2.5.5"
   }
 }

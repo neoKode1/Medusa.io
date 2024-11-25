@@ -1,17 +1,28 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
-import { validateAndEnhancePrompt, PROMPT_GUIDE } from '../../constants/promptGuide';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-interface EnhancementOptions {
-  style?: string;
-  genre?: string;
-  movieRef?: string;
-  bookRef?: string;
-}
+const PROMPT_GUIDE = `You are an expert at enhancing image generation prompts for Flux AI.
+Your task is to maintain the core essence of the base prompt while subtly incorporating:
+
+1. Technical Quality:
+- Resolution markers (4K, ultra-detailed, high-resolution)
+- Lighting descriptors (dramatic, ambient, volumetric)
+- Quality enhancers (masterful, photorealistic, intricate detail)
+
+2. Context Integration:
+- Use genre to inform mood and atmosphere
+- Draw inspiration from movie/book references without directly copying
+- Apply artistic style as a subtle enhancement layer
+
+3. Guidelines:
+- Keep the original prompt's main subject and action as the core focus
+- Add technical and quality terms naturally within the flow
+- Maintain coherence and avoid conflicting descriptors
+- Ensure the final prompt remains clear and focused`;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -19,56 +30,66 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { description, genre, movieReference, bookReference, style, mode } = req.body;
+    const { description = '', genre, style, movieReference, bookReference } = req.body;
 
-    // Update this section to match the imported function's signature
-    const localEnhancement = validateAndEnhancePrompt(
-      description,                          // prompt
-      mode === 'video' ? 'luma-ai' : 'sd3', // model
-      style,                               // style (optional)
-      genre,                               // genre (optional)
-      movieReference,                      // movieRef (optional)
-      bookReference                        // bookRef (optional)
-    );
-
-    if (!localEnhancement.isValid) {
-      return res.status(400).json({ error: localEnhancement.errors });
+    if (!description || typeof description !== 'string' || description.trim().length === 0) {
+      console.error('Invalid or missing description:', description);
+      return res.status(400).json({ 
+        error: 'Description is required and must be a non-empty string',
+        receivedValue: description 
+      });
     }
-
-    // Then, use GPT to further refine the prompt
-    const systemPrompt = `${PROMPT_GUIDE}\n\nYou are a prompt enhancement specialist. Optimize the following AI ${mode} generation prompt while maintaining its core elements and staying within length limits.`;
-    
-    const userPrompt = `Enhanced prompt: ${localEnhancement.enhancedPrompt}\n\n` +
-      (localEnhancement.breakdown ? 
-        `Technical choices: ${localEnhancement.breakdown.technicalChoices.join(', ')}\n` +
-        `Core elements: ${localEnhancement.breakdown.coreElements.join(', ')}` :
-        'No breakdown available');
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        { 
+          role: "system", 
+          content: PROMPT_GUIDE
+        },
+        { 
+          role: "user", 
+          content: `Enhance this image generation prompt while maintaining its core essence:
+
+Base Description: "${description.trim()}"
+
+Additional Context (use subtly):
+${genre ? `Genre: ${genre}` : ''}
+${style ? `Style: ${style}` : ''}
+${movieReference ? `Movie Reference: ${movieReference}` : ''}
+${bookReference ? `Book Reference: ${bookReference}` : ''}`
+        }
       ],
-      max_tokens: mode === 'video' ? 150 : 300,
-      temperature: 0.7,
+      max_tokens: 300,
+      temperature: 0.7
     });
 
-    const final_prompt = completion.choices[0]?.message?.content;
-    
-    if (!final_prompt) {
-      return res.status(500).json({ error: 'Failed to generate prompt' });
+    const enhancedPrompt = completion.choices[0]?.message?.content;
+
+    if (!enhancedPrompt) {
+      throw new Error('Failed to generate prompt');
     }
 
-    // Now TypeScript knows final_prompt is not null
-    const maxLength = mode === 'video' ? 200 : 300;
-    const finalPrompt = final_prompt.length > maxLength 
-      ? final_prompt.substring(0, maxLength) 
-      : final_prompt;
+    // Clean up the prompt - remove any markdown or formatting
+    const cleanPrompt = enhancedPrompt
+      .replace(/```.*?```/gs, '')
+      .replace(/\[.*?\]/g, '')
+      .replace(/\n+/g, ' ')
+      .replace(/["']/g, '') // Remove quotes
+      .trim();
+
+    console.log('Original prompt:', description);
+    console.log('Generated prompt:', cleanPrompt);
 
     res.status(200).json({ 
-      enhanced_prompt: finalPrompt,
-      breakdown: localEnhancement.breakdown
+      enhanced_prompt: cleanPrompt,
+      original_input: {
+        description: description.trim(),
+        genre,
+        style,
+        movieReference,
+        bookReference
+      }
     });
 
   } catch (error) {
@@ -83,4 +104,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     res.status(500).json({ error: 'An unexpected error occurred' });
   }
-} 
+}
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '4mb',
+    },
+  },
+}; 
