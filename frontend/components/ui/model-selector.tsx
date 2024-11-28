@@ -1,80 +1,54 @@
-import React, { useState } from 'react';
-import { RefreshCw, Image, Wand2, Layers } from 'lucide-react';
-import { MODELS } from '@/constants/models';
+import React from 'react';
 
-interface ModelSelectorProps {
-  onModelSelect: (modelName: string) => void;
-  currentModel: string;
-}
-
-// Group models by category
 const MODEL_CATEGORIES = {
-  'Text to Image': ['FLUX 1.1 Pro Ultra', 'FLUX 1.1 Pro', 'FLUX 1 Pro', 'FLUX 1 Dev'],
-  'Structural Conditioning': ['FLUX Canny Pro', 'FLUX Depth Pro'],
-  'Image Variation': ['FLUX Redux Pro Ultra', 'FLUX Redux Pro'],
-  'Other': ['Stable Diffusion XL', 'OpenJourney']
+  'Text to Image': [
+    'FLUX 1.1 Pro Ultra',
+    'FLUX 1.1 Pro', 
+    'FLUX 1 Pro',
+    'FLUX 1 Dev',
+    'FLUX Realism',      // Added @fal-ai/flux-realism
+    'FLUX LoRA Fill',    // Added @fal-ai/flux-lora-fill
+    'FLUX Inpainting',   // Added @fal-ai/flux-lora/inpainting
+    'FLUX Pro Redux'     // Added @fal-ai/flux-pro/v1.1-ultra/redux
+  ],
+  'Structural Conditioning': [
+    'FLUX Canny Pro',
+    'FLUX Depth Pro'
+  ],
+  'Image Variation': [
+    'FLUX Redux Pro Ultra',
+    'FLUX Redux Pro'
+  ],
+  'Other': [
+    'Stable Diffusion XL',
+    'Kling Video'
+  ]
 };
 
-export const ModelSelector: React.FC<ModelSelectorProps> = ({ onModelSelect, currentModel }) => {
-  const [isOpen, setIsOpen] = useState(false);
+interface ModelSelectorProps {
+  currentModel: string;
+  onModelSelect: (model: string) => void;
+}
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'Text to Image':
-        return <Image size={16} />;
-      case 'Structural Conditioning':
-        return <Layers size={16} />;
-      case 'Image Variation':
-        return <Wand2 size={16} />;
-      default:
-        return null;
-    }
-  };
-
+export const ModelSelector: React.FC<ModelSelectorProps> = ({
+  currentModel,
+  onModelSelect
+}) => {
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-runway-gray rounded-lg border border-white/10 text-white hover:bg-white/5 transition-colors"
-      >
-        <span>{currentModel}</span>
-        <RefreshCw 
-          size={16} 
-          className={`ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
-      
-      {isOpen && (
-        <div className="absolute w-80 mt-2 bg-runway-gray rounded-lg border border-white/10 shadow-xl z-50 max-h-96 overflow-y-auto">
-          {Object.entries(MODEL_CATEGORIES).map(([category, models]) => (
-            <div key={category}>
-              <div className="px-4 py-2 bg-black/20 flex items-center gap-2">
-                {getCategoryIcon(category)}
-                <span className="text-sm text-white/70">{category}</span>
-              </div>
-              {models.map((modelName) => (
-                <button
-                  key={modelName}
-                  onClick={() => {
-                    onModelSelect(modelName);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-colors flex items-center gap-2
-                    ${modelName === currentModel ? 'text-blue-400 bg-white/5' : 'text-white'}
-                  `}
-                >
-                  <span>{modelName}</span>
-                  {modelName.includes('Ultra') && (
-                    <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full ml-auto">
-                      Ultra
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+    <select
+      value={currentModel}
+      onChange={(e) => onModelSelect(e.target.value)}
+      className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-white/20 transition-colors"
+    >
+      {Object.entries(MODEL_CATEGORIES).map(([category, models]) => (
+        <optgroup key={category} label={category}>
+          {models.map((model) => (
+            <option key={model} value={model}>
+              {model}
+            </option>
           ))}
-        </div>
-      )}
-    </div>
+        </optgroup>
+      ))}
+    </select>
   );
 }; 

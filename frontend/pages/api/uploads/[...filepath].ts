@@ -6,6 +6,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { filepath } = req.query;
     const filePath = Array.isArray(filepath) ? filepath.join('/') : filepath;
+    if (!filePath) {
+      return res.status(400).json({ error: 'Invalid filepath' });
+    }
     const fullPath = path.join(process.cwd(), 'uploads', filePath);
 
     if (!fs.existsSync(fullPath)) {

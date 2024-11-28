@@ -6,7 +6,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { filepath } = req.query;
     const filePath = Array.isArray(filepath) ? filepath.join('/') : filepath;
-    const fullPath = path.join(process.cwd(), 'uploads', filePath);
+    
+    if (!filepath) {
+      return res.status(400).json({ error: 'No filepath provided' });
+    }
+
+    const fullPath = path.join(process.cwd(), 'uploads', filePath!);
 
     // Check if file exists
     if (!fs.existsSync(fullPath)) {

@@ -1,6 +1,4 @@
 import React from 'react';
-import { Slider } from '@/components/ui/slider';
-import { Select } from '@/components/ui/select';
 
 interface AdvancedSettingsProps {
   model: string;

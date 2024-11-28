@@ -5,6 +5,7 @@ interface GenerationContainerProps {
   generation: {
     assets?: {
       image?: string;
+      video?: string;
     };
   };
   isLoading: boolean;
@@ -34,11 +35,19 @@ export const GenerationContainer: React.FC<GenerationContainerProps> = ({
 
   return (
     <div className="relative w-full h-full">
-      <img
-        src={generation.assets.image}
-        alt="Generated image"
-        className="w-full h-full object-contain"
-      />
+      {isVideo && generation?.assets?.video ? (
+        <video
+          src={generation.assets.video}
+          controls
+          className="w-full h-full object-contain"
+        />
+      ) : (
+        <img
+          src={generation.assets.image}
+          alt="Generated content"
+          className="w-full h-full object-contain"
+        />
+      )}
     </div>
   );
 };

@@ -5,24 +5,31 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-const PROMPT_GUIDE = `You are an expert at enhancing image generation prompts for Flux AI.
-Your task is to maintain the core essence of the base prompt while subtly incorporating:
+const PROMPT_GUIDE = `You are an expert at enhancing image generation prompts for photorealistic outputs.
+Your task is to maintain the core essence of the base prompt while incorporating these key elements:
 
-1. Technical Quality:
-- Resolution markers (4K, ultra-detailed, high-resolution)
-- Lighting descriptors (dramatic, ambient, volumetric)
-- Quality enhancers (masterful, photorealistic, intricate detail)
+1. Photography Technical Elements:
+- Camera specifications (e.g., "shot on Canon 5D Mark IV", "85mm lens", "f/1.8 aperture")
+- Lighting details (e.g., "natural lighting", "golden hour", "studio lighting with soft boxes")
+- Photography style (e.g., "RAW photo", "4K", "8K resolution", "HDR")
 
-2. Context Integration:
-- Use genre to inform mood and atmosphere
-- Draw inspiration from movie/book references without directly copying
-- Apply artistic style as a subtle enhancement layer
+2. Composition Enhancement:
+- Depth of field descriptors ("shallow depth of field", "bokeh effect")
+- Perspective details ("close-up shot", "wide angle", "eye level")
+- Professional photography terms ("rule of thirds", "leading lines")
 
-3. Guidelines:
-- Keep the original prompt's main subject and action as the core focus
-- Add technical and quality terms naturally within the flow
-- Maintain coherence and avoid conflicting descriptors
-- Ensure the final prompt remains clear and focused`;
+3. Realism Markers:
+- Add photographic metadata ("ISO 100", "1/125 second")
+- Include environment details ("on location", "in studio")
+- Specify real-world lighting conditions ("overcast day", "diffused window light")
+
+4. Guidelines:
+- Keep the original prompt's main subject as the core focus
+- Add technical photography terms naturally within the flow
+- Avoid conflicting or fantasy-based descriptors
+- Use terms like "photorealistic", "hyperrealistic", "professional photography"
+- Include specific brands/equipment when relevant (e.g., "Profoto lighting", "Hasselblad")
+- End with quality markers ("high resolution", "sharp detail", "color accurate")`;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -72,7 +79,7 @@ ${bookReference ? `Book Reference: ${bookReference}` : ''}`
 
     // Clean up the prompt - remove any markdown or formatting
     const cleanPrompt = enhancedPrompt
-      .replace(/```.*?```/gs, '')
+      .replace(/```.*?```/g, '')  // Changed /gs to /g since /s flag requires ES2018+
       .replace(/\[.*?\]/g, '')
       .replace(/\n+/g, ' ')
       .replace(/["']/g, '') // Remove quotes

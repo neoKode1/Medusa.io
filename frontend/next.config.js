@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['lh3.googleusercontent.com', 'replicate.com', 'replicate.delivery', 'pbxt.replicate.delivery'],
+    domains: ['lh3.googleusercontent.com', 'replicate.com', 'replicate.delivery', 'pbxt.replicate.delivery', 'fal.media', 'v2.fal.media'],
     unoptimized: true,
   },
   typescript: {

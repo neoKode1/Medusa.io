@@ -86,23 +86,22 @@ export function validateAndEnhancePrompt(
     technical: [],
     style: []
   };
-
   // Add base description
-  layers.subject.push(description);
+  layers?.subject?.push(description);
 
   // Add style
   if (style) {
-    layers.style.push(style);
+    layers?.style?.push(style);
     // Add quality enhancers based on style
     switch (style.toLowerCase()) {
       case 'photorealistic':
-        layers.technical.push('highly detailed', '8k uhd', 'photorealistic', 'dslr');
+        layers?.technical?.push('highly detailed', '8k uhd', 'photorealistic', 'dslr');
         break;
       case 'anime':
-        layers.style.push('anime style', 'trending on pixiv');
+        layers?.style?.push('anime style', 'trending on pixiv');
         break;
       case 'digital art':
-        layers.technical.push('digital painting', 'trending on artstation', 'concept art');
+        layers?.technical?.push('digital painting', 'trending on artstation', 'concept art');
         break;
       // Add more style-specific enhancements
     }
@@ -110,16 +109,16 @@ export function validateAndEnhancePrompt(
 
   // Add genre-specific elements
   if (genre) {
-    layers.mood.push(genre);
+    layers?.mood?.push(genre);
     // Add genre-specific lighting and mood
     switch (genre.toLowerCase()) {
       case 'horror':
-        layers.lighting.push('dark lighting', 'dramatic shadows');
-        layers.mood.push('ominous', 'foreboding');
+        layers?.lighting?.push('dark lighting', 'dramatic shadows');
+        layers?.mood?.push('ominous', 'foreboding');
         break;
       case 'fantasy':
-        layers.lighting.push('magical lighting', 'ethereal glow');
-        layers.mood.push('mystical', 'enchanting');
+        layers?.lighting?.push('magical lighting', 'ethereal glow');
+        layers?.mood?.push('mystical', 'enchanting');
         break;
       // Add more genre-specific enhancements
     }
@@ -127,16 +126,15 @@ export function validateAndEnhancePrompt(
 
   // Add references
   if (movieReference) {
-    layers.style.push(`inspired by ${movieReference}`);
+    layers?.style?.push(`inspired by ${movieReference}`);
   }
   if (bookReference) {
-    layers.style.push(`inspired by ${bookReference}`);
+    layers?.style?.push(`inspired by ${bookReference}`);
   }
-
   // Add technical quality enhancers
-  layers.technical.push(
+  layers?.technical?.push(
     'highly detailed',
-    'professional',
+    'professional', 
     'sharp focus',
     'high resolution'
   );
@@ -194,5 +192,24 @@ export const getOptimalQualitySettings = (aspectRatio: string): QualitySettings 
         height: 1024,
         recommendedQuality: 100
       };
+  }
+};
+
+export const layers = {
+  subject: {
+    weight: 1,
+    description: 'Main subject of the image'
+  },
+  style: {
+    weight: 0.8,
+    description: 'Visual style and artistic direction'
+  },
+  technical: {
+    weight: 0.6,
+    description: 'Technical quality parameters'
+  },
+  mood: {
+    weight: 0.7,
+    description: 'Emotional and atmospheric qualities'
   }
 };

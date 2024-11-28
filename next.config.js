@@ -27,6 +27,7 @@ const nextConfig = {
         pathname: '/uploads/**',
       },
     ],
+    allowFutureImage: true
   },
   async redirects() {
     return [
@@ -50,6 +51,7 @@ const nextConfig = {
     };
     return config
   },
+  transpilePackages: ['lucide-react']
 }
 
 module.exports = nextConfig 

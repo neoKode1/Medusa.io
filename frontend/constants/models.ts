@@ -1,19 +1,99 @@
-export const MODELS = {
-  // Text to Image Models
-  'FLUX 1.1 Pro Ultra': 'black-forest-labs/flux-1.1-pro-ultra:c7c40e895b25a19e3aa77552a45a81283cc7da2adcc9c0ce0d3ebc9d0b8a3f68',
-  'FLUX 1.1 Pro': 'black-forest-labs/flux-1.1-pro:8586f329a4d9c32810f12efc8e21c7741f625b99c9d3be01875ea1f7afb95055',
-  'FLUX 1 Pro': 'black-forest-labs/flux-1-pro:7c3608a0b0e1a1d54c4d4c7e0f5a7e1f6b7e1d5c4b3a2f1e0d9c8b7a6f5e4d3',
-  'FLUX 1 Dev': 'black-forest-labs/flux-1-dev:8722dccf36647608f2b2d61951486f5b98028d6ddf4dfff685f2fc4432f4683b',
-  
-  // Structural Conditioning Models
-  'FLUX Canny Pro': 'black-forest-labs/flux-canny-pro:8722dccf36647608f2b2d61951486f5b98028d6ddf4dfff685f2fc4432f4683b',
-  'FLUX Depth Pro': 'black-forest-labs/flux-depth-pro:8722dccf36647608f2b2d61951486f5b98028d6ddf4dfff685f2fc4432f4683b',
-  
-  // Image Variation Models
-  'FLUX Redux Pro Ultra': 'black-forest-labs/flux-redux-pro-ultra:8722dccf36647608f2b2d61951486f5b98028d6ddf4dfff685f2fc4432f4683b',
-  'FLUX Redux Pro': 'black-forest-labs/flux-redux-pro:8722dccf36647608f2b2d61951486f5b98028d6ddf4dfff685f2fc4432f4683b',
-  
-  // Other Models
-  'Stable Diffusion XL': 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
-  'OpenJourney': 'prompthero/openjourney:ad59ca21177f9e217b9075e7300cf6e14f7e5b4505b87b9689dbd866e9768969'
-}; 
+import type { ModelFeatures } from '../types';
+
+// Define the model features interface
+interface ModelConfig {
+  name: string;
+  id: string;
+  endpoint?: string;
+  description: string;
+  features: {
+    maxResolution?: string;
+    steps?: number;
+    aspectRatios: string[];
+    generation_time?: string;
+    isVideo?: boolean;
+    requiresImage?: boolean;
+    durations?: string[];
+  }
+}
+
+// Define all available models
+export const MODELS: Record<string, ModelConfig> = {
+  fluxProUltra: {
+    name: "FLUX 1.1 Pro Ultra",
+    id: "black-forest-labs/flux-1.1-pro-ultra",
+    endpoint: "predictions",
+    description: "Fastest FLUX Pro with superior image quality",
+    features: {
+      maxResolution: "2048x2048",
+      steps: 25,
+      aspectRatios: ["1:1", "16:9", "9:16", "4:3", "3:2", "21:9"],
+      generation_time: "~10s"
+    }
+  },
+  fluxPro: {
+    name: "FLUX Pro",
+    id: "black-forest-labs/flux-pro",
+    description: "State-of-the-art image generation with top quality and detail",
+    features: {
+      maxResolution: "2048x2048",
+      steps: 25,
+      aspectRatios: ["1:1", "16:9", "9:16", "4:3", "3:2", "21:9"]
+    }
+  },
+  klingVideo: {
+    name: "Kling Video",
+    id: "fal-ai/kling-video/v1.5/pro/image-to-video",
+    description: "Image to video generation",
+    features: {
+      aspectRatios: ["16:9", "9:16", "1:1"],
+      durations: ["5", "10"],
+      isVideo: true,
+      requiresImage: true
+    }
+  }
+};
+
+// Add type definitions
+export interface VideoGenerationInput {
+  prompt: string;
+  reference_image: string;
+  duration: "5" | "10";
+  aspect_ratio: string;
+}
+
+export interface VideoGenerationResponse {
+  video_url?: string;
+  error?: string;
+}
+
+// Helper functions
+export function isVideoModel(model: string): boolean {
+  const isVideo = MODELS[model]?.features.isVideo ?? false;
+  console.log('🎥 Checking if video model:', { model, isVideo });
+  return isVideo;
+}
+
+export function requiresReferenceImage(model: string): boolean {
+  const requires = MODELS[model]?.features.requiresImage ?? false;
+  console.log('🖼️ Checking if reference image required:', { model, requires });
+  return requires;
+}
+
+export function getSupportedAspectRatios(model: string): string[] {
+  return MODELS[model]?.features.aspectRatios ?? ["1:1"];
+}
+
+export function getModelDurations(model: string): string[] {
+  return MODELS[model]?.features.durations ?? [];
+}
+
+// Add helper function with logging
+export function getModelConfig(modelId: string): ModelConfig | undefined {
+  console.log('🔍 Getting model config:', {
+    modelId,
+    exists: !!MODELS[modelId],
+    features: MODELS[modelId]?.features
+  });
+  return MODELS[modelId];
+} 

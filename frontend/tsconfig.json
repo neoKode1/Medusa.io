@@ -28,14 +28,17 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-, "pages/index.tsx"  ],
+    ".next/types/**/*.ts",
+    "pages/index.tsx"
+  ],
   "exclude": [
     "node_modules"
   ]
