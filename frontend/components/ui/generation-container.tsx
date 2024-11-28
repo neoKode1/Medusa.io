@@ -1,5 +1,4 @@
 import React from 'react';
-import { LoadingParticles } from '../LoadingParticles';
 
 interface GenerationContainerProps {
   generation: {

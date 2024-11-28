@@ -2,8 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { fal } from "@fal-ai/client";
 
 fal.config({
-  credentials: process.env.FAL_KEY,
-  baseURL: 'https://rest.fal.ai/v1'
+  credentials: process.env.FAL_KEY
 });
 
 type FluxModel = 
@@ -51,7 +50,12 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { prompt, model, image_url, options } = req.body;
+    const { prompt, model, image_url, options } = req.body as { 
+      prompt: string;
+      model: FluxModel;
+      image_url?: string;
+      options?: Record<string, any>;
+    };
 
     const result = await fal.run(MODEL_ENDPOINTS[model], {
       input: {
@@ -71,8 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({
       data: {
-        images: result.data.images.map(img => {
-          // Handle both string URLs and object formats
+        images: result.data.images.map((img: string | { url: string }) => {
           return typeof img === 'string' ? img : img.url;
         }),
         ...result.data

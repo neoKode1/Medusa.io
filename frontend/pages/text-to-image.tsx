@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { RefreshCw, Download, Upload } from 'lucide-react';
+import { RefreshCw, Download, UploadCloud } from '../node_modules/lucide-react';
 import { GenerationContainer } from '@/components/ui/generation-container';
 import { GalleryContainer } from '@/components/ui/gallery-container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -226,7 +226,7 @@ const TextToImagePage: React.FC = () => {
             htmlFor="image-upload"
             className="flex items-center gap-2 px-4 py-2 border border-blue-500 text-white rounded-lg hover:bg-blue-500/10 transition-colors cursor-pointer"
           >
-            <Upload size={20} />
+            <UploadCloud size={20} />
             Reference Image
             <input
               id="image-upload"
