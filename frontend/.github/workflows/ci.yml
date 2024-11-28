@@ -24,9 +24,7 @@ jobs:
       working-directory: frontend
       
     - name: Build
-      run: |
-        npm run build
-        npm run export
+      run: npm run build
       working-directory: frontend
       
     - name: Upload artifact

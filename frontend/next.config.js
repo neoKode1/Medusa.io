@@ -1,11 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    domains: [],
-  },
-  reactStrictMode: true,
-  output: 'standalone',
-  distDir: '.next',
+  // Remove the output: 'export' line since Vercel handles this automatically
 }
 
 module.exports = nextConfig 
