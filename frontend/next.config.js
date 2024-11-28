@@ -4,6 +4,8 @@ const nextConfig = {
     domains: [],
   },
   reactStrictMode: true,
+  output: 'standalone',
+  distDir: '.next',
 }
 
 module.exports = nextConfig 
