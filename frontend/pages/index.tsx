@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import type { NextPage } from 'next'
+import axios from 'axios';
 
 const Home: NextPage = () => {
   const router = useRouter()
@@ -40,7 +41,7 @@ const Home: NextPage = () => {
 
         {/* Sign In Button */}
         <button
-          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          onClick={handleSignIn}
           className="flex items-center gap-3 px-6 py-3 rounded-lg 
                      bg-transparent border border-white text-white
                      hover:bg-white/10 transition-all z-20"
@@ -104,5 +105,19 @@ const Home: NextPage = () => {
     </div>
   )
 }
+
+const handleSignIn = async () => {
+  try {
+    console.log('Attempting sign in...');
+    await signIn('google', { callbackUrl: '/dashboard' });
+  } catch (error) {
+    console.error('Sign in error:', error);
+    // Log to server
+    await axios.post('/api/auth/log', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }).catch(console.error);
+  }
+};
 
 export default Home 
