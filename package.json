@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build",
+    "build": "cd frontend && npm install --no-frozen-lockfile && npm run build",
     "start": "cd frontend && npm start"
   },
   "dependencies": {
