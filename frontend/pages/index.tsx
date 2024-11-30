@@ -4,13 +4,17 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 import type { NextPage } from 'next'
 
-export const getServerSideProps = async () => {
-  return { props: {} }
-}
-
 const Home: NextPage = () => {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+      </div>
+    )
+  }
 
   if (!session) {
     return (
@@ -25,6 +29,7 @@ const Home: NextPage = () => {
           autoPlay 
           loop 
           muted 
+          playsInline
           className="absolute w-full h-full object-cover z-0"
         >
           <source src="/cyberpunk girl1.mp4" type="video/mp4" />
@@ -35,7 +40,7 @@ const Home: NextPage = () => {
 
         {/* Sign In Button */}
         <button
-          onClick={() => signIn('google')}
+          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
           className="flex items-center gap-3 px-6 py-3 rounded-lg 
                      bg-transparent border border-white text-white
                      hover:bg-white/10 transition-all z-20"
@@ -66,6 +71,7 @@ const Home: NextPage = () => {
         autoPlay 
         loop 
         muted 
+        playsInline
         className="absolute w-full h-full object-cover z-0"
       >
         <source src="/cyberpunk girl1.mp4" type="video/mp4" />
@@ -84,7 +90,7 @@ const Home: NextPage = () => {
         </p>
         
         <div className="text-white mb-8">
-          <p>Welcome, {session?.user?.name}!</p>
+          <p>Welcome, {session.user?.name}!</p>
         </div>
 
         <button 

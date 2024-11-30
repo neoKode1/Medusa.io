@@ -27,6 +27,7 @@
     "formidable": "^3.5.2",
     "lucide-react": "^0.462.0",
     "lumaai": "^1.1.0",
+    "medusa-io": "file:",
     "next": "^14.0.0",
     "next-auth": "^4.24.5",
     "openai": "^4.0.0",
