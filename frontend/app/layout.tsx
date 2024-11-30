@@ -6,7 +6,14 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Medusa.io',
-  description: 'A Next.js application',
+  description: 'AI-powered image and video generation platform',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+  },
 }
 
 export default function RootLayout({
