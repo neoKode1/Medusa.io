@@ -9,5 +9,8 @@ declare module 'lucide-react' {
   export const RefreshCw: FC<IconProps>
   export const ChevronDown: FC<IconProps>
   export const Download: FC<IconProps>
-  // Add other icons as needed
+  export const UploadIcon: FC<IconProps>
+  export const HomeIcon: FC<IconProps>
+  export const Image: FC<IconProps>
+  export const Video: FC<IconProps>
 } 

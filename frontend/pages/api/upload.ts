@@ -1,37 +1,50 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import formidable from 'formidable';
-import fs from 'fs';
+import { NextApiRequest, NextApiResponse } from 'next';
+import { fal } from "@fal-ai/client";
 
 export const config = {
   api: {
-    bodyParser: false,
-  },
+    bodyParser: {
+      sizeLimit: '50mb'
+    }
+  }
 };
+
+fal.config({
+  credentials: process.env.FAL_KEY
+});
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    const form = formidable();
-    const [fields, files] = await form.parse(req);
-    const file = files.file?.[0];
+    const { image } = req.body;
 
-    if (!file) {
-      throw new Error('No file uploaded');
+    if (!image) {
+      return res.status(400).json({ error: 'No image provided' });
     }
 
-    // Here you would upload to S3 or similar
-    // For now, we'll return a temporary URL
-    const url = `/uploads/${file.originalFilename}`;
+    // Convert base64 to binary data
+    const base64Data = image.split(',')[1];
+    const binaryData = atob(base64Data);
+    const byteArray = new Uint8Array(binaryData.length);
     
-    return res.status(200).json({ url });
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ error: 'Failed to upload file' });
+    for(let i = 0; i < binaryData.length; i++) {
+      byteArray[i] = binaryData.charCodeAt(i);
+    }
+    
+    const file = new File([byteArray], "image.jpg", { type: "image/jpeg" });
+    const uploadedUrl = await fal.storage.upload(file);
+
+    return res.status(200).json({ url: uploadedUrl });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to upload image'
+    });
   }
-} 
+}
