@@ -1,6 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove the output: 'export' line since Vercel handles this automatically
+  reactStrictMode: true,
+  images: {
+    domains: ['fal.media'],
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  onDemandEntries: {
+    maxInactiveAge: 60 * 1000,
+    pagesBufferLength: 2,
+  }
 }
 
-module.exports = nextConfig 
+module.exports = nextConfig

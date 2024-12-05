@@ -12,7 +12,7 @@ export default function App({
 
   // Redirect /ImageToVideoPage to /image-to-video
   if (typeof window !== 'undefined' && router.pathname === '/ImageToVideoPage') {
-    router.replace('/image-to-video')
+    router.replace('/dashboard')
     return null
   }
 

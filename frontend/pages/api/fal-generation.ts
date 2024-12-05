@@ -1,91 +1,101 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { fal } from "@fal-ai/client";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { fal } from '@fal-ai/client';
+import { MODELS, isVideoModel } from '@/constants/models';
+import type { ModelName } from '@/constants/models';
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb'
+    }
+  }
+};
 
 fal.config({
   credentials: process.env.FAL_KEY
 });
 
-type FluxModel = 
-  | 'FLUX 1.1 Pro Ultra'
-  | 'FLUX 1.1 Pro'
-  | 'FLUX 1 Pro'
-  | 'FLUX 1 Dev'
-  | 'FLUX Realism'
-  | 'FLUX LoRA Fill'
-  | 'FLUX Inpainting'
-  | 'FLUX Pro Redux'
-  | 'FLUX Canny Pro'
-  | 'FLUX Depth Pro'
-  | 'FLUX Redux Pro Ultra'
-  | 'FLUX Redux Pro'
-  | 'Stable Diffusion XL'
-  | 'Kling Video'
-  | 'Luma Dream Machine';
-
-const MODEL_ENDPOINTS: Record<FluxModel, string> = {
-  'FLUX 1.1 Pro Ultra': 'fal-ai/flux-pro/v1.1-ultra',
-  'FLUX 1.1 Pro': 'fal-ai/flux-pro/v1.1',
-  'FLUX 1 Pro': 'fal-ai/flux-pro/v1',
-  'FLUX 1 Dev': 'fal-ai/flux/dev',
-  'FLUX Realism': 'fal-ai/flux-realism',
-  'FLUX LoRA Fill': 'fal-ai/flux-lora-fill',
-  'FLUX Inpainting': 'fal-ai/flux-inpainting',
-  'FLUX Pro Redux': 'fal-ai/flux-pro/redux',
-  'FLUX Canny Pro': 'fal-ai/flux-canny-pro',
-  'FLUX Depth Pro': 'fal-ai/flux-depth-pro',
-  'FLUX Redux Pro Ultra': 'fal-ai/flux-pro/redux-ultra',
-  'FLUX Redux Pro': 'fal-ai/flux-pro/redux',
-  'Stable Diffusion XL': 'fal-ai/stable-diffusion-xl',
-  'Kling Video': 'fal-ai/kling-video',
-  'Luma Dream Machine': 'fal-ai/luma-dream-machine'
-};
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
   try {
     const { prompt, model, image_url, options } = req.body as { 
       prompt: string;
-      model: FluxModel;
+      model: ModelName;
       image_url?: string;
       options?: Record<string, any>;
     };
 
-    const result = await fal.run(MODEL_ENDPOINTS[model], {
+    if (!MODELS[model]) {
+      throw new Error(`Invalid model: ${model}`);
+    }
+
+    const input = {
+      model,
+      modelEndpoint: MODELS[model].id,
+      prompt,
+      image_url,
+      options
+    };
+
+    const result = await fal.subscribe(input.modelEndpoint, {
       input: {
-        prompt,
-        image_url,
-        ...options
-      }
+        prompt: input.prompt,
+        image_url: input.image_url,
+        ...input.options
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        console.log('Queue update:', update);
+      },
     });
 
-    // Log the response for debugging
-    console.log('FAL API response:', result);
+    if (isVideoModel(model)) {
+      if (!result.data?.video?.url) {
+        throw new Error('No video URL in response');
+      }
+      return res.status(200).json({
+        success: true,
+        data: {
+          images: [],
+          video: {
+            url: result.data.video.url
+          },
+          requestId: result.requestId
+        }
+      });
+    }
 
-    // Ensure we're returning a properly structured response
-    if (!result.data?.images?.[0]) {
-      throw new Error('No image generated');
+    const images = result.data?.images?.map((img: any) => {
+      if (typeof img === 'string') return img;
+      if (img.url) return img.url;
+      if (img.image_url) return img.image_url;
+      throw new Error('Invalid image data in response');
+    });
+
+    if (!images?.length) {
+      throw new Error('No images generated');
     }
 
     return res.status(200).json({
+      success: true,
       data: {
-        images: result.data.images.map((img: string | { url: string }) => {
-          return typeof img === 'string' ? img : img.url;
-        }),
-        ...result.data
+        images,
+        videoUrl: null,
+        seed: result.data?.seed,
+        timings: result.data?.timings,
+        requestId: result.requestId
       }
     });
 
   } catch (error) {
-    console.error('FAL API error:', error);
-    return res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to generate image' 
+    console.error('API error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred'
     });
   }
 } 

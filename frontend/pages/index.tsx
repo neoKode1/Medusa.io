@@ -78,7 +78,7 @@ const Home: NextPage = () => {
         playsInline
         className="absolute w-full h-full object-cover z-0"
       >
-        <source src="/cyberpunk girl1.mp4" type="video/mp4" />
+        <source src="/promo.mp4" type="video/mp4" />
       </video>
 
       {/* Overlay */}
