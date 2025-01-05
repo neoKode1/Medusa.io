@@ -52,6 +52,8 @@ frontend/venv311/
 .pytest_cache/
 .mypy_cache/
 htmlcov/
+__tests__/
+jest.config.*
 
 # Logs and Debug
 npm-debug.log*
@@ -103,10 +105,33 @@ Thumbs.db
 # Large Media Files
 **/public/promo.mov
 *.safetensors
+*.mp4
+*.mov
+*.avi
+*.wmv
 
 # Project Specific
 flux_train_replicate/
 frontend/query/
+.git/
+.github/
+docs/
+*.md
+*.txt
+*.pdf
+
+# Development Files
+*.map
+*.ts.map
+*.js.map
 
 # Allow specific directories
 !frontend/lib/
+!frontend/types/
+!frontend/components/
+!frontend/pages/
+!frontend/public/
+!frontend/styles/
+
+# Vercel
+.vercel

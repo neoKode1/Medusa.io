@@ -6,10 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test": "jest",
-    "test:endpoints": "jest __tests__/api/generate-image.test.ts __tests__/api/generate-video.test.ts __tests__/api/train-model.test.ts",
-    "test:endpoints:watch": "jest --watch __tests__/api/generate-image.test.ts __tests__/api/generate-video.test.ts __tests__/api/train-model.test.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@chakra-ui/form-control": "^2.2.0",
@@ -47,7 +44,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.263.1",
     "lumaai": "^1.2.2",
-    "next": "14.0.4",
+    "next": "^14.2.22",
     "next-auth": "^4.24.5",
     "openai": "^4.77.3",
     "react": "^18",
@@ -67,26 +64,17 @@
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.26.0",
     "@shadcn/ui": "^0.0.4",
-    "@swc/jest": "^0.2.37",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^14.3.1",
-    "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@types/testing-library__jest-dom": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
     "@typescript-eslint/parser": "^8.19.0",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "node-mocks-http": "^1.16.2",
     "postcss": "^8",
     "prisma": "^6.1.0",
     "tailwindcss": "^3.3.0",
-    "ts-jest": "^29.2.5",
     "typescript": "^5"
   }
 }
