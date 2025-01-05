@@ -15,15 +15,91 @@ dist/
 .vscode/
 .idea/
 *.sublime-*
+*.swp
+*.swo
+.vs/
+*.user
+*.suo
 
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # System
 .DS_Store
 Thumbs.db
 
-# Service account keys
+# Service account keys and secrets
 *-service-account.json
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*secret*
+*credential*
+*password*
+*token*
+
+# Local env files
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.example
+.env.backup
+
+# Vercel
 .vercel
+
+# Testing
+coverage/
+.nyc_output/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.bak
+*.dump
+
+# Prisma
+prisma/.env
+.prisma/
+generated/
+
+# Backup files
+*.bak
+*.backup
+*~
+*.swp
+*.old
+
+# Cache
+.cache/
+.temp/
+.tmp/
+*.cache
+
+# Personal config files
+config.local.js
+config.dev.js
+*personal*
+*private*
+
+# Compiled output
+dist/
+build/
+out/
+*.compiled.*
+
+# Public promo file
+public/promo.mov
