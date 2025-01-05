@@ -43,6 +43,7 @@ frontend/venv311/
 *.user
 *.suo
 *.sublime-*
+.cursorignore
 
 # Testing and Coverage
 /coverage/
