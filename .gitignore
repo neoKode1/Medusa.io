@@ -1,68 +1,111 @@
 # Dependencies
 node_modules/
+.pnp
+.pnp.js
 __pycache__/
-*.pyc
-.env
-.env.local
-.env.*.local
+*.py[cod]
+*$py.class
+*.so
+.Python
 
+# Build and Distribution
+/.next/
+/out/
+/build/
+/dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Build
-.next/
-build/
-dist/
+# Virtual Environment
+venv/
+venv311/
+ENV/
+env/
+backend/venv/
+frontend/venv/
+frontend/venv311/
 
-# IDE
-.vscode/
+# IDE and Editor
 .idea/
+.vscode/
+*.swp
+*.swo
+.vs/
+*.user
+*.suo
 *.sublime-*
 
-# Logs
+# Testing and Coverage
+/coverage/
+.nyc_output/
+.coverage
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+
+# Logs and Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# System
-.DS_Store
-Thumbs.db
-
-# Service account keys
-*-service-account.json
-
-# Next.js
-.next/
-out/
-
-# Production
-build/
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
+# Local Environment Files
 .env
 .env.local
+.env.*
 .env.development.local
 .env.test.local
 .env.production.local
 .env.example
+.env.backup
 
-# Vercel
-.vercel
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.bak
+*.dump
 
-# Testing
-coverage
+# Prisma
+prisma/.env
+.prisma/
+generated/
 
-# Dependencies
-.pnp
-.pnp.js
+# System Files
+.DS_Store
+Thumbs.db
+*.pem
 
-.vercel
-medusaio-c82432c3e66e.json
+# Secrets and Credentials
+*-service-account.json
+*f444b45b023d.json
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*secret*
+*credential*
+*password*
+*token*
+
+# Large Media Files
+**/public/promo.mov
+*.safetensors
+
+# Project Specific
+flux_train_replicate/
+frontend/query/
+
+# Allow specific directories
+!frontend/lib/
