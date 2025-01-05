@@ -1,594 +1,384 @@
-import React, { useState, useCallback } from 'react';
-import { useSession } from "next-auth/react";
+import { type NextPage } from 'next';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { 
-  RefreshCw as RotateCw,
-  UploadIcon as UploadCloud,
-  HomeIcon,
-  Video as Film,
-  Image as ImageIcon
-} from 'lucide-react';
-import ImageUpload from '../components/ImageUpload';
-import ModelSelector from '@/components/ModelSelector';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-hot-toast';
+import { LuBrain } from 'react-icons/lu';
+import { PromptGeneratorModal } from '@/components/PromptGeneratorModal';
 
-// Define a specific type for video models
-type VideoModelName = 
-  // Text to Video Models
-  | 'Minimax'
-  | 'Haiper V2'
-  | 'Kling Pro'
-  | 'CogVideo-X'
-  | 'Hunyuan'
-  | 'LTX'
-  | 'Fast SVD'
-  | 'T2V Turbo'
-  | 'Luma Dream'
-  | 'Mochi V1'
-  | 'AnimateDiff Turbo'
-  // Image to Video Models
-  | 'Minimax I2V'
-  | 'Haiper I2V'
-  | 'CogVideo-X I2V'
-  | 'LTX I2V'
-  | 'Stable Video'
-  | 'Kling I2V Pro'
-  | 'Luma I2V'
-  | 'Live Portrait'
-  | 'SadTalker';
-
-interface VideoService {
-  id: string;
-  name: string;
-  description: string;
-}
-
-const VIDEO_SERVICES: VideoService[] = [
-  {
-    id: 'text-to-video',
-    name: 'Text to Video',
-    description: 'Generate videos from text descriptions'
-  },
-  {
-    id: 'image-to-video',
-    name: 'Image to Video',
-    description: 'Transform still images into dynamic videos'
-  }
+const ASPECT_RATIOS = [
+  { label: '16:9 (Landscape)', value: '16:9' },
+  { label: '9:16 (Portrait)', value: '9:16' },
+  { label: '1:1 (Square)', value: '1:1' },
+  { label: '4:3 (Classic)', value: '4:3' },
+  { label: '3:4 (Portrait Classic)', value: '3:4' }
 ];
 
-const VIDEO_MODEL_CATEGORIES = {
-  'Text to Video': [
-    'Minimax',
-    'Haiper V2',
-    'Kling Pro',
-    'CogVideo-X',
-    'Hunyuan',
-    'LTX',
-    'Fast SVD',
-    'T2V Turbo',
-    'Luma Dream',
-    'Mochi V1',
-    'AnimateDiff Turbo'
-  ],
-  'Image to Video': [
-    'Minimax I2V',
-    'Haiper I2V',
-    'CogVideo-X I2V',
-    'LTX I2V',
-    'Stable Video',
-    'Kling I2V Pro',
-    'Luma I2V',
-    'Live Portrait',
-    'SadTalker'
-  ]
-} as const;
-
-interface ModelConfig {
-  description: string;
-  features: string[];
-  speed: 'Fast' | 'Medium' | 'Slow';
-  quality: 'Standard' | 'High' | 'Ultra';
-}
-
-// Define model configurations
-const MODELS: Record<VideoModelName, ModelConfig> = {
-  // Text to Video Models
-  'Minimax': {
-    description: 'Fast and efficient video generation',
-    features: ['4K Resolution', 'Up to 30 seconds', 'Style control'],
-    speed: 'Fast',
-    quality: 'High'
-  },
-  'Haiper V2': {
-    description: 'High quality video generation with advanced controls',
-    features: ['4K Resolution', 'Up to 60 seconds', 'Advanced style control'],
-    speed: 'Medium',
-    quality: 'Ultra'
-  },
-  'Kling Pro': {
-    description: 'Professional grade video generation',
-    features: ['8K Resolution', 'Up to 60 seconds', 'Professional controls'],
-    speed: 'Medium',
-    quality: 'Ultra'
-  },
-  'CogVideo-X': {
-    description: 'Advanced cognitive video generation',
-    features: ['4K Resolution', 'Advanced cognition', 'Style preservation'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'Hunyuan': {
-    description: 'Specialized in natural motion',
-    features: ['Natural motion', 'Realistic animation', 'Style control'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'LTX': {
-    description: 'Fast and lightweight video generation',
-    features: ['Quick generation', 'Efficient processing', 'Basic controls'],
-    speed: 'Fast',
-    quality: 'Standard'
-  },
-  'Fast SVD': {
-    description: 'Rapid video generation with good quality',
-    features: ['Quick results', 'Good quality', 'Basic controls'],
-    speed: 'Fast',
-    quality: 'Standard'
-  },
-  'T2V Turbo': {
-    description: 'Ultra-fast video generation',
-    features: ['Fastest generation', 'Real-time processing', 'Basic controls'],
-    speed: 'Fast',
-    quality: 'Standard'
-  },
-  'Luma Dream': {
-    description: 'Creative and artistic video generation',
-    features: ['Artistic style', 'Creative control', 'High quality'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'Mochi V1': {
-    description: 'Specialized in anime-style videos',
-    features: ['Anime style', 'Character animation', 'Style control'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'AnimateDiff Turbo': {
-    description: 'Fast animation generation',
-    features: ['Quick animation', 'Style preservation', 'Motion control'],
-    speed: 'Fast',
-    quality: 'High'
-  },
-
-  // Image to Video Models
-  'Minimax I2V': {
-    description: 'Image animation with precise control',
-    features: ['Image animation', 'Motion control', 'Style preservation'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'Haiper I2V': {
-    description: 'High quality image animation',
-    features: ['4K Resolution', 'Advanced motion', 'Style control'],
-    speed: 'Medium',
-    quality: 'Ultra'
-  },
-  'CogVideo-X I2V': {
-    description: 'Cognitive image animation',
-    features: ['Smart animation', 'Motion preservation', 'Style control'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'LTX I2V': {
-    description: 'Fast image animation',
-    features: ['Quick processing', 'Basic motion', 'Style preservation'],
-    speed: 'Fast',
-    quality: 'Standard'
-  },
-  'Stable Video': {
-    description: 'Stable and consistent animation',
-    features: ['Stable motion', 'Consistent style', 'Quality results'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'Kling I2V Pro': {
-    description: 'Professional image animation',
-    features: ['8K Resolution', 'Professional controls', 'Advanced motion'],
-    speed: 'Medium',
-    quality: 'Ultra'
-  },
-  'Luma I2V': {
-    description: 'Creative image animation',
-    features: ['Artistic animation', 'Creative control', 'Style preservation'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'Live Portrait': {
-    description: 'Specialized in portrait animation',
-    features: ['Portrait animation', 'Facial motion', 'Natural movement'],
-    speed: 'Medium',
-    quality: 'High'
-  },
-  'SadTalker': {
-    description: 'Advanced talking head animation',
-    features: ['Talking head', 'Lip sync', 'Facial expression'],
-    speed: 'Medium',
-    quality: 'High'
-  }
-};
-
-const MedusaVideoPage: React.FC = () => {
-  const { data: session, status } = useSession();
+const MedusaVideoPage: NextPage = () => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<File | string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState('16:9');
+  const [loop, setLoop] = useState(true);
+  const [useImageAsStart, setUseImageAsStart] = useState(false);
+  const [useImageAsEnd, setUseImageAsEnd] = useState(false);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
 
-  // Initialize with a default model
-  const [mode, setMode] = useState<'text-to-video' | 'image-to-video'>('text-to-video');
-  const [selectedModel, setSelectedModel] = useState<VideoModelName>('Minimax');
-  const [prompt, setPrompt] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const handleModeChange = (newMode: 'text-to-video' | 'image-to-video') => {
-    setMode(newMode);
-    
-    // Safely check if the current model is compatible with the new mode
-    if (!selectedModel) {
-      // If no model is selected, set a default one based on mode
-      setSelectedModel(newMode === 'text-to-video' ? 'Minimax' : 'Minimax I2V');
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
       return;
     }
 
-    const isI2VModel = selectedModel?.includes('I2V') || 
-                      selectedModel === 'Live Portrait' || 
-                      selectedModel === 'SadTalker' || 
-                      selectedModel === 'Stable Video';
-
-    if (newMode === 'image-to-video' && !isI2VModel) {
-      // Switch to corresponding I2V model or default
-      if (selectedModel === 'Minimax') {
-        setSelectedModel('Minimax I2V');
-      } else if (selectedModel === 'Haiper V2') {
-        setSelectedModel('Haiper I2V');
-      } else {
-        setSelectedModel('Minimax I2V'); // Default I2V model
-      }
-    } else if (newMode === 'text-to-video' && isI2VModel) {
-      // Switch to corresponding T2V model or default
-      if (selectedModel === 'Minimax I2V') {
-        setSelectedModel('Minimax');
-      } else if (selectedModel === 'Haiper I2V') {
-        setSelectedModel('Haiper V2');
-      } else {
-        setSelectedModel('Minimax'); // Default T2V model
-      }
-    }
-    
-    setGeneratedVideo(null);
+    setImagePreview(file);
+    setUseImageAsStart(true);
   };
 
-  const handleModelSelect = (model: VideoModelName) => {
-    if (!model) return; // Guard against undefined model
-
-    const isI2VModel = model.includes('I2V') || 
-                      model === 'Live Portrait' || 
-                      model === 'SadTalker' || 
-                      model === 'Stable Video';
-                       
-    // Ensure mode matches the selected model
-    if (isI2VModel && mode !== 'image-to-video') {
-      setMode('image-to-video');
-    } else if (!isI2VModel && mode !== 'text-to-video') {
-      setMode('text-to-video');
-    }
-    
-    setSelectedModel(model);
-    setGeneratedVideo(null);
+  const clearImage = () => {
+    setImagePreview(null);
+    setUseImageAsStart(false);
+    setUseImageAsEnd(false);
   };
-
-  const handleImageSelect = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setReferenceImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  const handleUploadedImageSelect = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadedImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  }, []);
 
   const handleGeneration = async () => {
-    if (!prompt || prompt.trim().length === 0) {
-      console.log('Generation aborted: Empty prompt');
+    if (!imagePreview && !prompt.trim()) {
+      toast.error('Please enter a prompt when not using an image');
       return;
     }
-    
-    setIsGenerating(true);
-    setGeneratedVideo(null);
-    console.log('Starting video generation:', {
-      mode,
-      model: selectedModel,
-      promptLength: prompt.length,
-      hasUploadedImage: !!uploadedImage
-    });
 
+    if (prompt.trim() && (prompt.length < 3 || prompt.length > 5000)) {
+      toast.error('Prompt must be between 3 and 5000 characters');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const requestBody = {
-        prompt,
-        model: selectedModel,
-        mode,
-        image_url: uploadedImage
+      let imageUrl: string | null = null;
+
+      // If we have a string URL, use it directly
+      if (typeof imagePreview === 'string') {
+        imageUrl = imagePreview;
+      }
+      // If we have a File object, upload it first
+      else if (imagePreview instanceof File) {
+        const formData = new FormData();
+        formData.append('file', imagePreview);
+
+        const uploadResponse = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image');
+        }
+
+        const uploadData = await uploadResponse.json();
+        if (typeof uploadData.url !== 'string') {
+          throw new Error('Invalid response from upload endpoint');
+        }
+        imageUrl = uploadData.url;
+      }
+
+      // Prepare the request body exactly as per Luma API documentation
+      const requestBody: {
+        prompt: string;
+        aspect_ratio?: string;
+        loop?: boolean;
+        keyframes?: {
+          frame0?: {
+            type: "image";
+            url: string;
+          };
+          frame1?: {
+            type: "image";
+            url: string;
+          };
+        };
+      } = {
+        prompt: prompt.trim() || "Generate video from image",
       };
-      
-      console.log('Sending request with configuration:', {
-        ...requestBody,
-        image_url: uploadedImage ? 'Image data present' : 'No image data',
-        timestamp: new Date().toISOString()
-      });
-      
-      const startTime = performance.now();
+
+      // Add optional parameters only if they're set
+      if (aspectRatio) {
+        requestBody.aspect_ratio = aspectRatio;
+      }
+
+      if (loop !== undefined) {
+        requestBody.loop = loop;
+      }
+
+      // Add keyframes if we have an image URL
+      if (imageUrl) {
+        requestBody.keyframes = {};
+        
+        if (useImageAsStart) {
+          requestBody.keyframes.frame0 = {
+            type: "image",
+            url: imageUrl
+          };
+        }
+        
+        if (useImageAsEnd) {
+          requestBody.keyframes.frame1 = {
+            type: "image",
+            url: imageUrl
+          };
+        }
+
+        // Validate that at least one frame position is selected
+        if (!useImageAsStart && !useImageAsEnd) {
+          toast.error('Please select at least one frame position (start or end) when using an image');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Log the request body for debugging
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
       const response = await fetch('/api/generate-video', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(requestBody)
       });
-      const endTime = performance.now();
-
-      console.log('API Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        responseTime: `${(endTime - startTime).toFixed(2)}ms`
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Generation failed:', {
-          status: response.status,
-          error: errorData.error,
-          timestamp: new Date().toISOString()
-        });
-        throw new Error(errorData.error || 'Failed to generate video');
-      }
 
       const data = await response.json();
-      console.log('Generation successful:', {
-        hasVideoUrl: !!data.data?.video?.url,
-        processingTime: `${(endTime - startTime).toFixed(2)}ms`,
-        model: selectedModel,
-        mode,
-        timestamp: new Date().toISOString()
-      });
+      console.log('API Response:', data);
 
-      if (data.success && data.data?.video?.url) {
-        setGeneratedVideo(data.data.video.url);
-        console.log('Video URL set successfully');
-      } else {
-        console.error('Missing video URL in response:', data);
-        throw new Error('No video URL in response');
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate video');
       }
+
+      if (!data.id) {
+        throw new Error('No generation ID received');
+      }
+
+      toast.success('Video generation started!');
+      router.push(`/video-result?id=${data.id}`);
     } catch (error) {
-      console.error('Video generation error:', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        model: selectedModel,
-        mode,
-        timestamp: new Date().toISOString()
-      });
+      console.error('Generation error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate video');
     } finally {
-      setIsGenerating(false);
-      console.log('Generation process completed');
+      setIsLoading(false);
     }
   };
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-black to-gray-900">
-        <div className="relative">
-          <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-          <div className="relative animate-spin rounded-full h-16 w-16 border-2 border-white border-t-transparent"></div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (useImageAsStart && useImageAsEnd && loop) {
+      setLoop(false);
+      toast('Loop is disabled when using both start and end frames', {
+        icon: '⚠️'
+      });
+    }
+  }, [useImageAsStart, useImageAsEnd, loop]);
 
-  if (!session) {
-    router.push('/');
-    return null;
-  }
+  const getPreviewUrl = useCallback(() => {
+    if (!imagePreview) return '';
+    if (typeof imagePreview === 'string') return imagePreview;
+    return URL.createObjectURL(imagePreview);
+  }, [imagePreview]);
+
+  const handlePromptGenerated = (enhancedPrompt: string) => {
+    setPrompt(enhancedPrompt);
+  };
 
   return (
-    <div className="min-h-screen bg-black flex">
-      {/* Side Panel for Models */}
-      <div className="w-80 border-r border-white/5 h-screen sticky top-0 overflow-hidden hover:overflow-y-auto transition-all">
-        <div className="p-6">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-              <HomeIcon size={24} className="text-white/80" />
-            </Link>
-          </div>
-
-          <h2 className="text-xl font-medium text-white/80 mb-6">Mode Selection</h2>
-          <div className="flex space-x-4 mb-6">
-            <button
-              onClick={() => handleModeChange('text-to-video')}
-              className={`px-4 py-2 rounded-lg ${
-                mode === 'text-to-video'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              <Film className="w-4 h-4 inline mr-2" />
-              Text to Video
-            </button>
-            <button
-              onClick={() => handleModeChange('image-to-video')}
-              className={`px-4 py-2 rounded-lg ${
-                mode === 'image-to-video'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              <ImageIcon className="w-4 h-4 inline mr-2" />
-              Image to Video
-            </button>
-          </div>
-
-          {/* Model Selection */}
-          <ModelSelector
-            mode={mode}
-            selectedModel={selectedModel}
-            onModelSelect={handleModelSelect}
-            VIDEO_MODEL_CATEGORIES={{
-              'Text to Video': ["Minimax", "Haiper V2", "Kling Pro", "CogVideo-X", "Hunyuan", "LTX", "Fast SVD", "T2V Turbo", "Luma Dream", "Mochi V1", "AnimateDiff Turbo"],
-              'Image to Video': [
-                "Minimax I2V",
-                "Haiper I2V",
-                "CogVideo-X I2V",
-                "LTX I2V",
-                "Stable Video",
-                "Kling I2V Pro",
-                "Luma I2V",
-                "Live Portrait",
-                "SadTalker"
-              ]
-            }}
-            isGenerating={isGenerating}
-            MODELS={MODELS}
-          />
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-6">
-        {/* Top Bar */}
-        <div className="h-16 border-b border-white/5 flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-              <HomeIcon size={24} className="text-white/80" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="max-w-4xl mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-white mb-4">What video do you want to create?</h1>
-            <p className="text-white/60">Generate stunning videos with AI</p>
-          </div>
-
-          <div className="border border-white/10 rounded-xl p-8">
-            {mode === 'image-to-video' && (
-              <div className="mb-6">
-                <ImageUpload
-                  onImageSelect={handleUploadedImageSelect}
-                  currentImage={uploadedImage}
-                  label="Upload Source Image"
-                  className="border border-white/10 rounded-xl p-8 hover:border-white/20 transition-colors text-center"
+    <>
+      <Head>
+        <title>Video Generation - Medusa</title>
+        <meta name="description" content="Generate videos using AI" />
+      </Head>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-white">Video Generation</h1>
+        
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Left Column - Input Controls */}
+          <div className="space-y-6">
+            {/* Prompt Input */}
+            <div>
+              <label htmlFor="prompt" className="block text-lg font-medium text-white mb-2">
+                Prompt {!imagePreview && <span className="text-red-400">*</span>}
+              </label>
+              <div className="relative">
+                <textarea
+                  id="prompt"
+                  rows={4}
+                  className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 pr-10"
+                  placeholder={imagePreview ? "Describe your video (optional)..." : "Describe your video..."}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
                 />
-              </div>
-            )}
-
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={mode === 'text-to-video' 
-                ? 'Describe the video you want to create...'
-                : 'Describe how you want to animate this image...'}
-              className="w-full h-40 bg-transparent text-white/90 rounded-lg p-4 resize-none 
-                       focus:outline-none focus:ring-1 focus:ring-blue-500/50 mb-4 
-                       border border-white/10 placeholder-white/30 text-lg"
-            />
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <button className="px-4 py-2 border border-white/10 text-white/80 rounded-lg hover:bg-white/5 transition-all flex items-center gap-2">
-                  <UploadCloud size={18} />
-                  <span>Reference</span>
+                <button
+                  onClick={() => setIsPromptModalOpen(true)}
+                  className="absolute right-2 top-2 text-gray-400 hover:text-white"
+                  title="Open Prometheus Prompt Generator"
+                >
+                  <LuBrain className="w-5 h-5" />
                 </button>
-                <select className="px-4 py-2 bg-black border border-white/10 text-white/80 rounded-lg hover:bg-black/50 transition-all appearance-none cursor-pointer">
-                  <option value="1:1">Square (1:1)</option>
-                  <option value="2:3">Portrait (2:3)</option>
-                  <option value="3:2">Landscape (3:2)</option>
-                  <option value="4:3">Standard (4:3)</option>
-                  <option value="3:4">Portrait (3:4)</option>
-                  <option value="16:9">Widescreen (16:9)</option>
-                  <option value="9:16">Mobile (9:16)</option>
-                  <option value="21:9">Ultrawide (21:9)</option>
-                  <option value="4:5">Instagram Portrait (4:5)</option>
-                  <option value="5:4">Instagram Landscape (5:4)</option>
+              </div>
+              {prompt.trim() && (
+                <div className="mt-1 text-sm">
+                  <span className={`${
+                    prompt.length < 3 || prompt.length > 5000 ? 'text-red-400' : 'text-gray-400'
+                  }`}>
+                    {prompt.length}/5000 characters
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label className="block text-lg font-medium text-white mb-2">
+                Reference Image (Optional)
+              </label>
+              <div className="flex items-center space-x-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  Upload Image
+                </label>
+                {imagePreview && (
+                  <button
+                    onClick={clearImage}
+                    className="ml-2 text-red-500 hover:text-red-600"
+                  >
+                    Clear Image
+                  </button>
+                )}
+              </div>
+              {imagePreview && (
+                <div className="mt-4">
+                  <div className="relative aspect-video w-full max-w-md">
+                    <img
+                      src={getPreviewUrl()}
+                      alt="Preview"
+                      className="rounded-lg object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={useImageAsStart}
+                        onChange={(e) => setUseImageAsStart(e.target.checked)}
+                        className="form-checkbox text-blue-500"
+                      />
+                      <span className="text-white">Use as starting frame</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={useImageAsEnd}
+                        onChange={(e) => setUseImageAsEnd(e.target.checked)}
+                        className="form-checkbox text-blue-500"
+                      />
+                      <span className="text-white">Use as ending frame</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Settings and Generation */}
+          <div className="space-y-6">
+            {/* Video Settings */}
+            <div className="bg-gray-800 rounded-lg p-6 space-y-4">
+              <h2 className="text-xl font-semibold text-white mb-4">Video Settings</h2>
+              
+              {/* Aspect Ratio */}
+              <div>
+                <label htmlFor="aspect-ratio" className="block text-sm font-medium text-gray-300 mb-2">
+                  Aspect Ratio
+                </label>
+                <select
+                  id="aspect-ratio"
+                  value={aspectRatio}
+                  onChange={(e) => setAspectRatio(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                >
+                  {ASPECT_RATIOS.map((ratio) => (
+                    <option key={ratio.value} value={ratio.value}>
+                      {ratio.label}
+                    </option>
+                  ))}
                 </select>
               </div>
+
+              {/* Loop Toggle */}
+              <div>
+                <label className={`flex items-center space-x-2 cursor-pointer ${
+                  useImageAsStart && useImageAsEnd ? 'opacity-50' : ''
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={loop}
+                    onChange={(e) => setLoop(e.target.checked)}
+                    disabled={useImageAsStart && useImageAsEnd}
+                    className="form-checkbox text-blue-500"
+                  />
+                  <span className="text-white">Loop video</span>
+                  {useImageAsStart && useImageAsEnd && (
+                    <span className="text-xs text-yellow-400 ml-2">
+                      (Not available with both start and end frames)
+                    </span>
+                  )}
+                </label>
+              </div>
             </div>
 
-            <div className="flex justify-end">
-              <button
-                onClick={handleGeneration}
-                disabled={isGenerating || (mode === 'image-to-video' && !uploadedImage)}
-                className={`px-6 py-3 rounded-lg transition-all duration-200 
-                         flex items-center gap-2
-                         ${isGenerating || (mode === 'image-to-video' && !uploadedImage)
-                           ? 'border border-white/10 text-white/50 cursor-not-allowed' 
-                           : 'bg-blue-500 hover:bg-blue-600'} 
-                         text-white font-medium`}
-              >
-                {isGenerating ? (
-                  <>
-                    <RotateCw className="animate-spin" size={18} />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  'Generate Video'
-                )}
-              </button>
+            {/* Generate Button */}
+            <button
+              onClick={handleGeneration}
+              disabled={isLoading || (!prompt.trim() && !imagePreview)}
+              className={`w-full py-3 rounded-lg font-semibold transition-colors ${
+                isLoading || (!prompt.trim() && !imagePreview)
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              {isLoading ? 'Generating...' : 'Generate Video'}
+            </button>
+
+            {/* Help Text */}
+            <div className="text-gray-400 text-sm">
+              <p>Tips:</p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>Be descriptive in your prompt for better results</li>
+                <li>You can use a reference image as start or end frame</li>
+                <li>Generation may take a few minutes</li>
+                <li>Prompt is optional when using an image</li>
+                <li>Loop is disabled when using both start and end frames</li>
+              </ul>
             </div>
           </div>
         </div>
-
-        {generatedVideo && (
-          <div className="mt-8 border border-white/10 rounded-xl p-6">
-            <video 
-              src={generatedVideo}
-              controls
-              className="w-full rounded-lg mb-4"
-            />
-            <div className="flex justify-center">
-              <a
-                href={generatedVideo}
-                download="generated-video.mp4"
-                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg 
-                          transition-all duration-200 flex items-center gap-2"
-              >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="18" 
-                  height="18" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download Video
-              </a>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+
+      <PromptGeneratorModal
+        isOpen={isPromptModalOpen}
+        onClose={() => setIsPromptModalOpen(false)}
+        onPromptGenerated={handlePromptGenerated}
+      />
+    </>
   );
 };
 
 export default MedusaVideoPage;
-
-function setReferenceImage(arg0: string) {
-  throw new Error('Function not implemented.');
-}

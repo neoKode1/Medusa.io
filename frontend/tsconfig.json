@@ -30,14 +30,16 @@
       }
     ],
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "types": ["jest", "@testing-library/jest-dom"]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "pages/index.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "jest.setup.ts"
   ],
   "exclude": [
     "node_modules"

@@ -34,7 +34,7 @@ const Home: NextPage = () => {
           playsInline
           className="absolute w-full h-full object-cover md:object-center object-[70%] z-0"
         >
-          <source src="/cyberpunk girl1.mp4" type="video/mp4" />
+          <source src="/cyberpunk-girl1.mp4" type="video/mp4" />
         </video>
 
         {/* Overlay with better mobile contrast */}
@@ -62,51 +62,9 @@ const Home: NextPage = () => {
     )
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      <Head>
-        <title>MEDUSA.io - AI Image & Video Generation</title>
-        <meta name="description" content="AI-powered image and video generation platform" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      {/* Video Background */}
-      <video 
-        autoPlay 
-        loop 
-        muted 
-        playsInline
-        className="absolute w-full h-full object-cover z-0"
-      >
-        <source src="/promo.mp4" type="video/mp4" />
-      </video>
-
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30 z-10"></div>
-
-      {/* Main Content */}
-      <main className="text-center z-20">
-        <h1 className="text-6xl font-bold text-white mb-4">
-          MEDUSA.io
-        </h1>
-        <p className="text-xl text-blue-400 mb-4">
-          Powered with Luma Dream Machine along with Flux Black Forest
-        </p>
-        
-        <div className="text-white mb-8">
-          <p>Welcome, {session.user?.name}!</p>
-        </div>
-
-        <button 
-          onClick={() => router.push('/dashboard')}
-          className="px-8 py-3 rounded-lg bg-transparent border border-white text-white
-                     hover:bg-white/10 transition-all"
-        >
-          Enter
-        </button>
-      </main>
-    </div>
-  )
+  // Redirect to dashboard if already signed in
+  router.push('/dashboard')
+  return null
 }
 
 const handleSignIn = async () => {

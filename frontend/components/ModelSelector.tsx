@@ -5,13 +5,17 @@ interface ModelSelectorProps {
   mode: 'text-to-video' | 'image-to-video';
   selectedModel: VideoModelName;
   onModelSelect: (model: VideoModelName) => void;
-  VIDEO_MODEL_CATEGORIES: Record<string, string[]>;
+  VIDEO_MODEL_CATEGORIES: {
+    'Text to Video': VideoModelName[];
+    'Image to Video': VideoModelName[];
+  };
   isGenerating: boolean;
   MODELS: Record<VideoModelName, {
     description: string;
     features: string[];
     speed: 'Fast' | 'Medium' | 'Slow';
     quality: 'Standard' | 'High' | 'Ultra';
+    isActive: boolean;
   }>;
 }
 
@@ -24,13 +28,28 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   MODELS
 }) => {
   // Helper function to check if a model is compatible with current mode
-  const isModelCompatible = (modelName: string): boolean => {
+  const isModelCompatible = (modelName: VideoModelName): boolean => {
     const isI2VModel = modelName.includes('I2V') || 
                       modelName === 'Live Portrait' || 
                       modelName === 'SadTalker' || 
                       modelName === 'Stable Video';
     
     return mode === 'image-to-video' ? isI2VModel : !isI2VModel;
+  };
+
+  // Helper function to get model configuration safely
+  const getModelConfig = (modelName: VideoModelName) => {
+    const config = MODELS[modelName];
+    if (!config) {
+      return {
+        description: 'Model configuration not available',
+        features: [],
+        speed: 'Medium' as const,
+        quality: 'Standard' as const,
+        isActive: false
+      };
+    }
+    return config;
   };
 
   return (
@@ -42,51 +61,54 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             <h4 className="text-white/70 text-sm font-medium">{category}</h4>
             {models.map((modelName) => {
               const isCompatible = isModelCompatible(modelName);
+              const modelConfig = getModelConfig(modelName);
+              const isAvailable = modelConfig.isActive && isCompatible;
+
               return (
                 <button
                   key={modelName}
-                  onClick={() => isCompatible && onModelSelect(modelName as VideoModelName)}
+                  onClick={() => isAvailable && onModelSelect(modelName)}
                   className={`w-full p-4 rounded-lg border transition-all ${
                     selectedModel === modelName
                       ? 'border-blue-500 bg-blue-500/10'
-                      : isCompatible
+                      : isAvailable
                       ? 'border-white/10 hover:border-white/20'
                       : 'border-white/5 opacity-50 cursor-not-allowed'
                   }`}
-                  disabled={!isCompatible || (isGenerating && selectedModel !== modelName)}
-                  title={!isCompatible ? `This model is not available in ${mode} mode` : ''}
+                  disabled={!isAvailable || (isGenerating && selectedModel !== modelName)}
+                  title={!isCompatible ? `This model is not available in ${mode} mode` : (!modelConfig.isActive ? 'Coming Soon' : '')}
                 >
                   <div className="text-left">
                     <div className="flex items-center justify-between">
                       <h4 className="text-white font-medium">{modelName}</h4>
-                      {!isCompatible && (
+                      {!isAvailable && (
                         <span className="text-xs text-white/40 px-2 py-1 bg-white/5 rounded">
-                          {mode === 'text-to-video' ? 'I2V Only' : 'T2V Only'}
+                          {!modelConfig.isActive ? 'Coming Soon' : (mode === 'text-to-video' ? 'I2V Only' : 'T2V Only')}
                         </span>
                       )}
                     </div>
                     <p className="text-white/60 text-sm mt-1">
-                      {MODELS[modelName as VideoModelName]?.description || 'Advanced video generation model'}
+                      {modelConfig.description}
                     </p>
-                    {isCompatible && (
+                    {isAvailable && (
                       <div className="flex gap-2 mt-2">
                         <span className={`text-xs px-2 py-1 rounded ${
-                          MODELS[modelName as VideoModelName]?.speed === 'Fast' 
+                          modelConfig.speed === 'Fast' 
                             ? 'bg-green-500/20 text-green-300'
-                            : MODELS[modelName as VideoModelName]?.speed === 'Medium'
+                            : modelConfig.speed === 'Medium'
                             ? 'bg-yellow-500/20 text-yellow-300'
                             : 'bg-red-500/20 text-red-300'
                         }`}>
-                          {MODELS[modelName as VideoModelName]?.speed}
+                          {modelConfig.speed}
                         </span>
                         <span className={`text-xs px-2 py-1 rounded ${
-                          MODELS[modelName as VideoModelName]?.quality === 'Ultra'
+                          modelConfig.quality === 'Ultra'
                             ? 'bg-purple-500/20 text-purple-300'
-                            : MODELS[modelName as VideoModelName]?.quality === 'High'
+                            : modelConfig.quality === 'High'
                             ? 'bg-blue-500/20 text-blue-300'
                             : 'bg-gray-500/20 text-gray-300'
                         }`}>
-                          {MODELS[modelName as VideoModelName]?.quality}
+                          {modelConfig.quality}
                         </span>
                       </div>
                     )}

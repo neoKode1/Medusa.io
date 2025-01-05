@@ -1,3 +1,5 @@
+import type { LoraWeight } from '@/constants/models';
+
 export interface ModelFeatures {
   maxResolution?: string;
   rawMode?: boolean;
@@ -19,4 +21,22 @@ export interface Generation {
     aspectRatio?: string;
     duration?: string;
   };
+  imageUrl?: string;
+}
+
+export interface ModelOptions {
+  width?: number;
+  height?: number;
+  quality?: number;
+  reference_image?: string;
+  loras?: LoraWeight[];
+  [key: string]: any;
+}
+
+export interface GenerationState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  error?: string;
+  imageUrl?: string;
+  id?: string;
+  processingTime?: number;
 } 

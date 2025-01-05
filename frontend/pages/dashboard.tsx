@@ -1,110 +1,115 @@
-import { useSession, signOut } from "next-auth/react"
-import Head from 'next/head'
-import { useRouter } from 'next/router'
-import type { NextPage } from 'next'
+import { type NextPage } from 'next';
+import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { ImageIcon, VideoIcon, PersonIcon } from '@radix-ui/react-icons';
+import { useEffect, useState } from 'react';
 
 const Dashboard: NextPage = () => {
-  const router = useRouter()
-  const { data: session, status } = useSession()
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [mounted, setMounted] = useState(false);
 
-  if (status === "loading") {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/');
+    }
+  }, [status, router]);
+
+  // Don't render anything until after hydration
+  if (!mounted) {
+    return null;
+  }
+
+  // Show loading state while checking authentication
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white" />
       </div>
-    )
+    );
   }
 
+  // Don't render anything if not authenticated
   if (!session) {
-    router.push('/')
-    return null
+    return null;
   }
-
-  const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push('/');
-  };
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-black">
-      {/* Minimal Navigation Bar */}
-      <div className="fixed top-4 left-0 right-0 z-50 flex justify-center">
-        <div className="flex flex-wrap gap-2 p-2 rounded-lg backdrop-blur-sm bg-black/20 max-w-[90%] justify-center">
-          <Link 
-            href="/MedusaPage" 
-            className="px-3 py-2 text-xs sm:text-sm text-white/90 rounded-lg hover:bg-white/10 
-                     transition-all duration-300 hover:text-white whitespace-nowrap"
-          >
-            Text to Image
+    <>
+      <Head>
+        <title>Dashboard - Medusa</title>
+        <meta name="description" content="Medusa AI Dashboard" />
+      </Head>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-white">Welcome to Medusa</h1>
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <Link href="/MedusaPage" className="block">
+            <Card className="bg-black/20 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5" />
+                  Image Generation
+                </CardTitle>
+                <CardDescription className="text-white/60">
+                  Create stunning images with AI
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Generate high-quality images from text descriptions using state-of-the-art AI models.
+                </p>
+              </CardContent>
+            </Card>
           </Link>
-          
-          <Link 
-            href="/MedusaVideoPage" 
-            className="px-4 py-2 text-sm text-white/90 rounded-lg hover:bg-white/10 
-                     transition-all duration-300 hover:text-white"
-          >
-            Video Generation
+
+          <Link href="/MedusaVideoPage" className="block">
+            <Card className="bg-black/20 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <VideoIcon className="w-5 h-5" />
+                  Video Generation
+                </CardTitle>
+                <CardDescription className="text-white/60">
+                  Transform images into videos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Create dynamic videos from still images or text descriptions using advanced AI technology.
+                </p>
+              </CardContent>
+            </Card>
           </Link>
-          
-          <Link 
-            href="/character-training" 
-            className="px-4 py-2 text-sm text-white/90 rounded-lg hover:bg-white/10 
-                     transition-all duration-300 hover:text-white"
-          >
-            Character Training
-          </Link>
-          
-          <Link 
-            href="/gallery" 
-            className="px-4 py-2 text-sm text-white/90 rounded-lg hover:bg-white/10 
-                     transition-all duration-300 hover:text-white"
-          >
-            Gallery
+
+          <Link href="/character-training" className="block">
+            <Card className="bg-black/20 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <PersonIcon className="w-5 h-5" />
+                  Character Training
+                </CardTitle>
+                <CardDescription className="text-white/60">
+                  Train custom character models
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/80">
+                  Create personalized AI models trained on your character images for unique generations.
+                </p>
+              </CardContent>
+            </Card>
           </Link>
         </div>
       </div>
-
-      {/* Main Content */}
-      <div className="h-screen">
-        <section className="h-full relative">
-          <Link href="/MedusaPage" className="block h-full w-full relative group">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            >
-              <source src="/promo.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-all duration-500" />
-            <div className="relative z-10 h-full flex flex-col items-center justify-center p-4">
-              <h1 className="text-4xl md:text-6xl font-bold text-white text-center group-hover:scale-110 transition-transform duration-500 mb-4">
-                Welcome to Medusa.io
-              </h1>
-              <p className="text-white/90 text-center max-w-3xl text-base md:text-xl lg:text-2xl">
-                Create stunning images using our integrated AI models including Stable Diffusion XL, 
-                Stable Diffusion 3.5, Flux Models, and more.
-              </p>
-            </div>
-          </Link>
-        </section>
-      </div>
-
-      {/* Logout Button */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-        <button 
-          onClick={handleLogout}
-          className="px-8 py-3 text-white/90 rounded-lg backdrop-blur-sm bg-black/20
-                    hover:bg-white/10 active:bg-white/20 transition-all duration-300
-                    w-[200px] text-sm hover:text-white"
-        >
-          Log Out
-        </button>
-      </div>
-    </div>
+    </>
   );
-}
+};
 
 export default Dashboard; 

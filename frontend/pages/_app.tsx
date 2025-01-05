@@ -1,38 +1,29 @@
-import type { AppProps } from "next/app"
-import { useRouter } from 'next/router'
-import '../styles/globals.css'
-import { SessionProvider } from "next-auth/react"
-import { Toaster } from 'react-hot-toast'
+import '@/styles/globals.css';
+import type { AppProps } from 'next/app';
+import { SessionProvider } from 'next-auth/react';
+import dynamic from 'next/dynamic';
+import { Inter } from 'next/font/google';
+import Head from 'next/head';
 
-export default function App({ 
-  Component, 
-  pageProps: { session, ...pageProps } 
-}: AppProps) {
-  const router = useRouter()
+const inter = Inter({ subsets: ['latin'] });
 
-  // Redirect /ImageToVideoPage to /image-to-video
-  if (typeof window !== 'undefined' && router.pathname === '/ImageToVideoPage') {
-    router.replace('/dashboard')
-    return null
-  }
+const Layout = dynamic(() => import('@/components/ui/layout').then(mod => mod.Layout), {
+  ssr: false
+});
 
+export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <SessionProvider session={session}>
-      <main>
-        <Component {...pageProps} />
-        <Toaster 
-          position="bottom-center"
-          reverseOrder={false}
-          toastOptions={{
-            // Default options for all toasts
-            duration: 5000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-          }}
-        />
-      </main>
+      <Head>
+        <title>Medusa.io</title>
+        <meta name="description" content="AI-powered image and video generation platform" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+      </Head>
+      <div className={inter.className}>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </div>
     </SessionProvider>
-  )
+  );
 } 

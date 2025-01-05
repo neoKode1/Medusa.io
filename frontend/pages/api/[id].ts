@@ -1,48 +1,72 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next';
+import { ApiResponse, VideoResponse, handleApiError, createApiResponse } from '@/types/api';
 import Replicate from 'replicate';
 
+interface ReplicatePrediction {
+  id: string;
+  status: string;
+  output: string[] | null;
+  error: string | { message: string } | null;
+}
+
 export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
+  _req: NextApiRequest,
+  res: NextApiResponse<ApiResponse<VideoResponse>>
 ) {
   // Log incoming request
   console.log('🔵 GET /api/[id]', {
-    method: req.method,
-    query: req.query,
-    headers: req.headers
+    method: _req.method,
+    query: _req.query,
+    headers: _req.headers
   });
 
-  if (req.method !== 'GET') {
-    console.warn('⚠️ Method not allowed:', req.method);
-    return res.status(405).json({ message: 'Method not allowed' });
+  if (_req.method !== 'GET') {
+    console.warn('⚠️ Method not allowed:', _req.method);
+    return res.status(405).json(handleApiError(new Error('Method not allowed')));
   }
 
-  const predictionId = req.query.id as string;
+  const predictionId = _req.query.id as string;
   console.log('🔍 Checking prediction status for ID:', predictionId);
+
+  if (!predictionId) {
+    console.error('❌ No prediction ID provided');
+    return res.status(400).json(handleApiError(new Error('No prediction ID provided')));
+  }
 
   try {
     const replicate = new Replicate({
       auth: process.env.REPLICATE_API_TOKEN,
     });
 
-    const prediction = await replicate.predictions.get(predictionId);
-    console.log('✅ Prediction status:', { id: predictionId, status: prediction.status });
-    return res.status(200).json(prediction);
+    const prediction = await replicate.predictions.get(predictionId) as ReplicatePrediction;
+    console.log('✅ Prediction status:', prediction.status);
 
+    if (prediction.status === 'succeeded' && prediction.output) {
+      return res.status(200).json(createApiResponse({
+        url: prediction.output[0],
+        id: prediction.id
+      }));
+    }
+
+    if (prediction.status === 'failed') {
+      const errorMessage = typeof prediction.error === 'string' 
+        ? prediction.error 
+        : prediction.error?.message || 'Video generation failed';
+      throw new Error(errorMessage);
+    }
+
+    return res.status(200).json(createApiResponse({
+      url: '',
+      id: prediction.id
+    }));
   } catch (error) {
-    console.error('❌ Prediction status error:', {
-      id: predictionId,
-      error: error instanceof Error ? error.message : error
-    });
-    return res.status(500).json({ 
-      message: 'Failed to check prediction status',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    console.error('❌ Error fetching prediction:', error);
+    return res.status(500).json(handleApiError(error));
   }
 }
 
 // Handle OPTIONS request for CORS
-export async function OPTIONS(request: Request) {
+export async function OPTIONS() {
   return new Response(null, {
     status: 204,
     headers: {
